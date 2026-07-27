@@ -20,12 +20,10 @@ export default function HomePage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // GANTI /mobil/ JADI /cars/
         const resMobil = await fetch(`${API_URL}/cars/`);
         const dataMobil = await resMobil.json();
         setMobilList(dataMobil);
 
-        // GANTI /rumah/ JADI /houses/
         const resRumah = await fetch(`${API_URL}/houses/`);
         const dataRumah = await resRumah.json();
         setRumahList(dataRumah);
@@ -51,7 +49,7 @@ export default function HomePage() {
           </Link>
           
           {/* MENU DESKTOP */}
-          <div className="hidden lg:flex gap-6 items-center font-semibold">
+          <div className="hidden lg:flex gap-4 items-center font-semibold">
             <button onClick={() => setActiveTab('mobil')} className={`${activeTab === 'mobil' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-600 hover:text-blue-600'}`}>Mobil</button>
             <button onClick={() => setActiveTab('rumah')} className={`${activeTab === 'rumah' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-600 hover:text-blue-600'}`}>Rumah</button>
             <Link href="/blog" className="text-gray-600 hover:text-blue-600">Blog</Link>
@@ -59,7 +57,8 @@ export default function HomePage() {
             <div className="h-6 border-l border-gray-300"></div>
 
             <Link href="/admin" className="text-sm text-gray-600 hover:text-red-500">Admin</Link>
-            <Link href="/login" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition">Login Showroom</Link>
+            <Link href="/register-showroom" className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-600 shadow-md transition">Daftar Showroom</Link>
+            <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition">Login Showroom</Link>
             <a href="https://wa.me/628979879518" target="_blank" className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600 transition">WA Admin</a>
           </div>
 
@@ -81,7 +80,8 @@ export default function HomePage() {
             <Link href="/blog" onClick={() => setIsOpen(false)} className="block py-2 font-semibold">Blog</Link>
             <hr />
             <Link href="/admin" onClick={() => setIsOpen(false)} className="block py-2 font-semibold text-red-500">Admin</Link>
-            <Link href="/login" onClick={() => setIsOpen(false)} className="block mt-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-center">Login Showroom</Link>
+            <Link href="/register-showroom" onClick={() => setIsOpen(false)} className="block bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-center">Daftar Showroom</Link>
+            <Link href="/login" onClick={() => setIsOpen(false)} className="block bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-center">Login Showroom</Link>
             <a href="https://wa.me/628979879518" target="_blank" onClick={() => setIsOpen(false)} className="block bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-center">WA Admin</a>
           </div>
         </div>
