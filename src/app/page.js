@@ -20,11 +20,13 @@ export default function HomePage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const resMobil = await fetch(`${API_URL}/mobil/`);
+        // GANTI /mobil/ JADI /cars/
+        const resMobil = await fetch(`${API_URL}/cars/`);
         const dataMobil = await resMobil.json();
         setMobilList(dataMobil);
 
-        const resRumah = await fetch(`${API_URL}/rumah/`);
+        // GANTI /rumah/ JADI /houses/
+        const resRumah = await fetch(`${API_URL}/houses/`);
         const dataRumah = await resRumah.json();
         setRumahList(dataRumah);
       } catch (error) {
@@ -120,12 +122,12 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {mobilList.map(mobil => (
                     <div key={mobil.id} className="bg-white border rounded-lg shadow p-4 hover:shadow-lg transition">
-                      <img src={mobil.foto1 || 'https://placehold.co/400x300'} alt={mobil.tipe} className="w-full h-40 object-cover rounded mb-2"/>
-                      <h3 className="font-bold">{mobil.merek} {mobil.tipe} {mobil.tahun}</h3>
-                      <p className="text-sm text-gray-500">{mobil.km} KM</p>
-                      <p className="font-bold text-blue-600 text-lg mt-1">Rp{mobil.harga_tunai?.toLocaleString()}</p>
-                      <p className="text-xs">Showroom: {mobil.showroom?.nama_showroom}</p>
-                      <a href={`https://wa.me/${mobil.no_wa}`} target="_blank" className="mt-2 w-full bg-green-500 text-white text-center py-2 rounded block font-bold">WA</a>
+                      <img src={mobil.photo1 || 'https://placehold.co/400x300'} alt={mobil.type} className="w-full h-40 object-cover rounded mb-2"/>
+                      <h3 className="font-bold">{mobil.brand} {mobil.type} {mobil.year}</h3>
+                      <p className="text-sm text-gray-500">{mobil.mileage} KM</p>
+                      <p className="font-bold text-blue-600 text-lg mt-1">Rp{mobil.cash_price?.toLocaleString()}</p>
+                      <p className="text-xs">Showroom: {mobil.showroom?.name}</p>
+                      <a href={`https://wa.me/${mobil.whatsapp}`} target="_blank" className="mt-2 w-full bg-green-500 text-white text-center py-2 rounded block font-bold">WA</a>
                     </div>
                   ))}
                 </div>
@@ -141,10 +143,10 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {rumahList.map(rumah => (
                     <div key={rumah.id} className="bg-white border rounded-lg shadow p-4 hover:shadow-lg transition">
-                      <img src={rumah.foto1 || 'https://placehold.co/400x300'} alt={rumah.type_rumah} className="w-full h-40 object-cover rounded mb-2"/>
-                      <h3 className="font-bold">Rumah {rumah.type_rumah}</h3>
-                      <p className="text-sm text-gray-500">LT {rumah.luas_tanah} m2 • {rumah.lokasi}</p>
-                      <p className="font-bold text-blue-600 text-lg mt-1">Rp{rumah.harga?.toLocaleString()}</p>
+                      <img src={rumah.photo1 || 'https://placehold.co/400x300'} alt={rumah.house_type} className="w-full h-40 object-cover rounded mb-2"/>
+                      <h3 className="font-bold">Rumah {rumah.house_type}</h3>
+                      <p className="text-sm text-gray-500">LT {rumah.land_size} m2 • {rumah.location}</p>
+                      <p className="font-bold text-blue-600 text-lg mt-1">Rp{rumah.price?.toLocaleString()}</p>
                       <a href="https://wa.me/628979879518" target="_blank" className="mt-2 w-full bg-green-500 text-white text-center py-2 rounded block font-bold">WA Admin</a>
                     </div>
                   ))}
