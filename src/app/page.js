@@ -16,7 +16,6 @@ export default function HomePage() {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
 
-    // AMBIL DATA DARI API
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -39,7 +38,7 @@ export default function HomePage() {
 
   return (
     <main className="bg-gray-50">
-      {/* NAVBAR */}
+      {/* NAVBAR - UDAH DIHAPUS TOMBOL DAFTAR */}
       <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-lg' : 'bg-white'}`}>
         <div className="container mx-auto max-w-7xl px-4 py-3 flex justify-between items-center">
           
@@ -49,7 +48,7 @@ export default function HomePage() {
           </Link>
           
           {/* MENU DESKTOP */}
-          <div className="hidden lg:flex gap-4 items-center font-semibold">
+          <div className="hidden lg:flex gap-6 items-center font-semibold">
             <button onClick={() => setActiveTab('mobil')} className={`${activeTab === 'mobil' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-600 hover:text-blue-600'}`}>Mobil</button>
             <button onClick={() => setActiveTab('rumah')} className={`${activeTab === 'rumah' ? 'text-blue-600 border-b-2 border-blue-600 pb-1' : 'text-gray-600 hover:text-blue-600'}`}>Rumah</button>
             <Link href="/blog" className="text-gray-600 hover:text-blue-600">Blog</Link>
@@ -57,8 +56,7 @@ export default function HomePage() {
             <div className="h-6 border-l border-gray-300"></div>
 
             <Link href="/admin" className="text-sm text-gray-600 hover:text-red-500">Admin</Link>
-            <Link href="/register-showroom" className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-600 shadow-md transition">Daftar Showroom</Link>
-            <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition">Login Showroom</Link>
+            <Link href="/login" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition">Login Showroom</Link>
             <a href="https://wa.me/628979879518" target="_blank" className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600 transition">WA Admin</a>
           </div>
 
@@ -72,7 +70,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* MENU HP NGELIPAT */}
+        {/* MENU HP NGELIPAT - UDAH DIHAPUS TOMBOL DAFTAR */}
         <div className={`lg:hidden overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96' : 'max-h-0'}`}>
           <div className="bg-white border-t px-4 py-3 flex-col gap-2">
             <button onClick={() => {setActiveTab('mobil'); setIsOpen(false)}} className="block py-2 font-semibold text-left">Mobil</button>
@@ -80,7 +78,6 @@ export default function HomePage() {
             <Link href="/blog" onClick={() => setIsOpen(false)} className="block py-2 font-semibold">Blog</Link>
             <hr />
             <Link href="/admin" onClick={() => setIsOpen(false)} className="block py-2 font-semibold text-red-500">Admin</Link>
-            <Link href="/register-showroom" onClick={() => setIsOpen(false)} className="block bg-orange-500 text-white px-4 py-2 rounded-lg font-bold text-center">Daftar Showroom</Link>
             <Link href="/login" onClick={() => setIsOpen(false)} className="block bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-center">Login Showroom</Link>
             <a href="https://wa.me/628979879518" target="_blank" onClick={() => setIsOpen(false)} className="block bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-center">WA Admin</a>
           </div>
@@ -157,6 +154,52 @@ export default function HomePage() {
           </>
         )}
       </section>
+
+      {/* FOOTER BARU - DAFTAR SHOWROOM DI SINI */}
+      <footer className="bg-gray-900 text-white mt-12">
+        <div className="container mx-auto max-w-7xl px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* KOLOM 1: LOGO */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-blue-600 text-white font-bold text-xl p-2 rounded-lg">O</div>
+                <span className="text-2xl font-bold text-white">Otopadang</span>
+              </div>
+              <p className="text-gray-400 text-sm">Portal #1 Jual Beli Mobil Bekas & Rumah di Padang</p>
+            </div>
+
+            {/* KOLOM 2: LINK */}
+            <div>
+              <h3 className="font-bold text-lg mb-4">Navigasi</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><button onClick={() => setActiveTab('mobil')} className="hover:text-white">Mobil Bekas</button></li>
+                <li><button onClick={() => setActiveTab('rumah')} className="hover:text-white">Rumah</button></li>
+                <li><Link href="/blog" className="hover:text-white">Blog</Link></li>
+                <li><Link href="/admin" className="hover:text-white">Admin</Link></li>
+              </ul>
+            </div>
+
+            {/* KOLOM 3: CTA DAFTAR */}
+            <div>
+              <h3 className="font-bold text-lg mb-4">Punya Showroom?</h3>
+              <p className="text-gray-400 text-sm mb-4">Daftarkan showroom Anda dan jual mobil lebih cepat</p>
+              <Link href="/register-showroom" className="bg-orange-500 text-white px-5 py-3 rounded-lg font-bold hover:bg-orange-600 block text-center">
+                Daftar Showroom Gratis
+              </Link>
+              <Link href="/login" className="bg-blue-600 text-white px-5 py-3 rounded-lg font-bold hover:bg-blue-700 block text-center mt-3">
+                Login Showroom
+              </Link>
+            </div>
+
+          </div>
+
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
+            © 2026 Otopadang.com - Padang
+          </div>
+        </div>
+      </footer>
+
     </main>
   );
 }
