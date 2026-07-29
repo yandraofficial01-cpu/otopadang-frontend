@@ -11,9 +11,9 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     try {
-      const res = await fetch('http://localhost:8000/auth/login', {
+      const res = await fetch('https://otopadang-api.up.railway.app/auth/login', { // <-- UDAH GANTI KE RAILWAY
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -25,7 +25,7 @@ export default function LoginPage() {
       // Simpan ke localStorage biar ga ilang pas refresh
       localStorage.setItem('showroom_id', data.showroom_id)
       localStorage.setItem('email', data.email)
-      
+
       router.push('/dashboard') // lempar ke dashboard abis login
     } catch (err) {
       setError(err.message)
@@ -37,8 +37,8 @@ export default function LoginPage() {
       <form onSubmit={handleLogin} className="p-8 shadow-lg rounded-lg w-96">
         <h1 className="text-2xl font-bold mb-4">Login Otopadang</h1>
         {error && <p className="text-red-500">{error}</p>}
-        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="border p-2 w-full mb-3" required />
-        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="border p-2 w-full mb-3" required />
+        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="border p-2 w-full mb-2 rounded" required/>
+        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="border p-2 w-full mb-4 rounded" required/>
         <button className="bg-blue-600 text-white w-full p-2 rounded">Login</button>
       </form>
     </div>
