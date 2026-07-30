@@ -1,53 +1,37 @@
-"use client"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Navbar from "@/components/Navbar"; // kita panggil navbar baru
 
-export default function Navbar() {
-  const [token, setToken] = useState(null)
-  const [role, setRole] = useState(null)
-  const router = useRouter()
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
 
-  useEffect(() => {
-    setToken(localStorage.getItem("token"))
-    setRole(localStorage.getItem("role"))
-  }, [])
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
-  const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("role")
-    setToken(null)
-    router.push("/login")
-  }
+export const metadata = {
+  title: "Otopadang.com",
+  description: "Jual Beli Mobil & Rumah Padang",
+};
 
+export default function RootLayout({ children }) {
   return (
-    <header className="bg-white shadow-md sticky top-0 z-10">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <a href="/" className="text-2xl font-bold text-blue-600">Otopadang</a>
-        
-        <nav className="hidden md:flex items-center gap-6">
-          <a href="/mobil" className="text-gray-700 hover:text-blue-600 font-medium">Mobil</a>
-          <a href="/rumah" className="text-gray-700 hover:text-blue-600 font-medium">Rumah</a>
-          <a href="/blog" className="text-gray-700 hover:text-blue-600 font-medium">Blog</a>
-        </nav>
+    <html
+      lang="id"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-gray-50">
+        <Navbar /> {/* Pake navbar yg bisa login/logout */}
 
-        <div className="flex items-center gap-3">
-          {token ? (
-            <>
-              <a href={role === "admin" ? "/admin" : "/dashboard"} className="text-gray-700 hover:text-blue-600 font-medium">
-                Dashboard
-              </a>
-              <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600">
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <a href="/login" className="text-gray-700 hover:text-blue-600 font-medium">Login</a>
-              <a href="/register-showroom" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700">+ Jual</a>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  )
+        <main className="flex-grow">{children}</main>
+
+        <footer className="bg-white border-t mt-10 py-4 text-center text-gray-500 text-sm">
+          © 2026 Otopadang.com - Padang
+        </footer>
+      </body>
+    </html>
+  );
 }
