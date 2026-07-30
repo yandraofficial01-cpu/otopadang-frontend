@@ -6,7 +6,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const router = useRouter()
+  const router = useRouter() // <- INI DOANG, HAPUS SISANYA
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -22,10 +22,10 @@ export default function LoginPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail)
 
-      // 1. SIMPAN TOKEN KE COOKIE - INI KUNCINYA
-      document.cookie = `token=${data.access_token}; path=/; max-age=86400`
+      // 1. SIMPAN TOKEN KE COOKIE
+      document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`
       
-      // 2. Simpan data lain boleh di localStorage
+      // 2. Simpan data lain
       localStorage.setItem('showroom_id', data.showroom_id)
       localStorage.setItem('role', data.role)
       localStorage.setItem('email', data.email)
