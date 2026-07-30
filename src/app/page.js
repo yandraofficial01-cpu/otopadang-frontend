@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 const fitur = [
   { icon: "🚗", title: "Mobil Bekas Berkualitas", desc: "Semua mobil sudah dicek 100+ titik oleh tim kami" },
-  { icon: "🏠", title: "Rumah Developer Terpercaya", desc: "Partner dengan developer terbaik di Padang" },
+  { icon: "🏠", title: "Rumah", desc: "Partner dengan developer terbaik di Padang" },
   { icon: "💎", title: "Proses Cepat & Aman", desc: "Transaksi mudah, legalitas terjamin" },
 ]
 
