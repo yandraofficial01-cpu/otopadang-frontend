@@ -13,7 +13,7 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const res = await fetch('https://otopadang-api.up.railway.app/auth/login', { // <-- UDAH GANTI KE RAILWAY
+      const res = await fetch('https://otopadang-api.up.railway.app/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -22,24 +22,28 @@ export default function LoginPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail)
 
-      // Simpan ke localStorage biar ga ilang pas refresh
+      // 1. SIMPAN TOKEN KE COOKIE - INI KUNCINYA
+      document.cookie = `token=${data.access_token}; path=/; max-age=86400`
+      
+      // 2. Simpan data lain boleh di localStorage
       localStorage.setItem('showroom_id', data.showroom_id)
+      localStorage.setItem('role', data.role)
       localStorage.setItem('email', data.email)
 
-      router.push('/dashboard') // lempar ke dashboard abis login
+      router.push('/dashboard') 
     } catch (err) {
       setError(err.message)
     }
   }
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <form onSubmit={handleLogin} className="p-8 shadow-lg rounded-lg w-96">
+    <div className="flex justify-center items-center h-screen bg-black">
+      <form onSubmit={handleLogin} className="p-8 shadow-lg rounded-lg w-96 bg-gray-900 text-gold">
         <h1 className="text-2xl font-bold mb-4">Login Otopadang</h1>
         {error && <p className="text-red-500">{error}</p>}
-        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="border p-2 w-full mb-2 rounded" required/>
-        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="border p-2 w-full mb-4 rounded" required/>
-        <button className="bg-blue-600 text-white w-full p-2 rounded">Login</button>
+        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="border p-2 w-full mb-2 rounded bg-black" required/>
+        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="border p-2 w-full mb-4 rounded bg-black" required/>
+        <button className="bg-yellow-500 text-black font-bold w-full p-2 rounded">Login</button>
       </form>
     </div>
   )
