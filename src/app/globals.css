@@ -1,18 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap');
 
-:root {
-  --background: #0B0B0F; /* Hitam Pekat */
-  --foreground: #E5E5E5; /* Abu-abu terang */
-  --gold: #D4AF37; /* Emas */
+@theme {
+  --color-background: #0B0B0F; /* Hitam Pekat */
+  --color-foreground: #E5E5E5; /* Abu-abu terang */
+  --color-gold: #D4AF37; /* Emas */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: 'Poppins', sans-serif;
 }
 
@@ -21,11 +18,13 @@ h1, h2, h3 {
 }
 
 .gold-text {
-  color: var(--gold);
+  color: var(--color-gold);
 }
 
-.btn-gold {
-  @apply bg-gradient-to-r from-yellow-600 to-amber-400 text-black font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-yellow-500/50 transition-all duration-300 transform hover:scale-105;
+@layer components {
+  .btn-gold {
+    @apply bg-gradient-to-r from-yellow-600 to-amber-400 text-black font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-yellow-500/50 transition-all duration-300 transform hover:scale-105;
+  }
 }
 
 /* ANIMASI FADE IN PAS MUNCUL */
