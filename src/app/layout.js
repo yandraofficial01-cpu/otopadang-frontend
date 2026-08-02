@@ -14,22 +14,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#0B0B0F] text-gray-200">
+      <body className="min-h-full flex-col bg-[#0B0B0F] text-gray-200">
         
         <header className="bg-[#0B0B0F]/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
           <div className="container mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
             <Link href="/" className={`${playfair.className} text-3xl font-bold gold-text`}>Otopadang</Link>
             
             <nav className="hidden md:flex items-center gap-8 font-semibold">
-              <Link href="/" onClick={() => window.scrollTo(0,0)} className="text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
-              <Link href="/" onClick={() => window.scrollTo(0,0)} className="text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
+              <Link href="/" className="text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
+              <Link href="/" className="text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
               <Link href="/blog" className="text-gray-300 hover:text-yellow-400 transition">Blog</Link>
             </nav>
 
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-gray-300 hover:text-white font-medium hidden md:block">Login</Link>
-              <Link href="/mobil/tambah" className="btn-gold">+ Jual</Link>
-            </div>
+            {/* TOMBOL LOGIN & JUAL UDAH GUA HAPUS DULU */}
+            <div></div>
           </div>
         </header>
 
