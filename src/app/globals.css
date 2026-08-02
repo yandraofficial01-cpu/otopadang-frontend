@@ -21,10 +21,20 @@ h1, h2, h3 {
   color: var(--color-gold);
 }
 
-@layer components {
-  .btn-gold {
-    @apply bg-gradient-to-r from-yellow-600 to-amber-400 text-black font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-yellow-500/50 transition-all duration-300 transform hover:scale-105;
-  }
+/* INI YG GUA GANTI - HAPUS @layer & @apply */
+.btn-gold {
+  background-image: linear-gradient(to right, #ca8a04, #fbbf24); /* from-yellow-600 to-amber-400 */
+  color: black;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  transition: all 300ms;
+  transform: scale(1);
+}
+.btn-gold:hover {
+  box-shadow: 0 0 20px 0 rgb(234 179 8 / 0.5); /* hover:shadow-yellow-500/50 */
+  transform: scale(1.05); /* hover:scale-105 */
 }
 
 /* ANIMASI FADE IN PAS MUNCUL */
