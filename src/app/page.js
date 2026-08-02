@@ -11,16 +11,7 @@ const fitur = [
 export default function HomePage() {
   return (
     <main className="bg-[#0B0B0F]">
-      {/* NAVBAR */}
-      <header className="bg-[#0B0B0F]/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
-        <div className="container mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-3xl font-bold gold-text">Otopadang</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-gray-300 hover:text-white font-medium hidden md:block">Login</Link>
-            <Link href="/mobil/tambah" className="btn-gold!py-2!px-4 text-sm">+ Jual</Link>
-          </div>
-        </div>
-      </header>
+      {/* HAPUS HEADER DARI SINI */}
 
       {/* HERO BANNER */}
       <section className="relative h-[90vh] flex items-center justify-center text-center bg-black overflow-hidden">
@@ -66,11 +57,8 @@ export default function HomePage() {
         <Link href="/register-showroom" className="bg-black text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition">Daftar Gratis</Link>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-black border-t border-gray-900 py-10 text-center text-gray-500 text-sm">
-        <p className="text-2xl font-bold gold-text mb-2">Otopadang</p>
-        <p>© 2026 Otopadang.com - Elegance in Every Deal</p>
-      </footer>
+      {/* HAPUS FOOTER JUGA KALAU UDAH ADA DI LAYOUT */}
+      {/* <footer>...</footer> */}
     </main>
   );
 }
