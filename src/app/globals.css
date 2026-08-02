@@ -2,28 +2,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap');
 
 @theme {
-  --color-background: #0B0B0F; /* Hitam Pekat */
-  --color-foreground: #E5E5E5; /* Abu-abu terang */
-  --color-gold: #D4AF37; /* Emas */
+  --color-background: #0B0B0F;
+  --color-foreground: #E5E5E5;
+  --color-gold: #D4AF37;
+  
+  /* TAMBAHIN INI BIAR FONT MASUK KE TAILWIND */
+  --font-sans: 'Poppins', sans-serif;
+  --font-serif: 'Playfair Display', serif;
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: 'Poppins', sans-serif;
 }
 
 h1, h2, h3 {
-  font-family: 'Playfair Display', serif; /* Font mewah buat judul */
+  font-family: var(--font-serif);
 }
 
 .gold-text {
   color: var(--color-gold);
 }
 
-/* INI YG GUA GANTI - HAPUS @layer & @apply */
 .btn-gold {
-  background-image: linear-gradient(to right, #ca8a04, #fbbf24); /* from-yellow-600 to-amber-400 */
+  background-image: linear-gradient(to right, #ca8a04, #fbbf24);
   color: black;
   font-weight: 700;
   padding: 0.75rem 1.5rem;
@@ -33,11 +35,10 @@ h1, h2, h3 {
   transform: scale(1);
 }
 .btn-gold:hover {
-  box-shadow: 0 0 20px 0 rgb(234 179 8 / 0.5); /* hover:shadow-yellow-500/50 */
-  transform: scale(1.05); /* hover:scale-105 */
+  box-shadow: 0 0 20px 0 rgb(234 179 8 / 0.5);
+  transform: scale(1.05);
 }
 
-/* ANIMASI FADE IN PAS MUNCUL */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
