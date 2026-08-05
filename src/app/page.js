@@ -1,64 +1,56 @@
-"use client";
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+"use client"
 
-const fitur = [
-  { icon: "🚗", title: "Mobil Bekas Berkualitas", desc: "Semua mobil sudah dicek 100+ titik oleh tim kami" },
-  { icon: "🏠", title: "Rumah", desc: "Partner dengan developer terbaik di Padang" },
-  { icon: "💎", title: "Proses Cepat & Aman", desc: "Transaksi mudah, legalitas terjamin" },
-]
+import Link from "next/link";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
-export default function HomePage() {
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <main className="bg-[#0B0B0F]">
-      {/* HAPUS HEADER DARI SINI */}
+    <header className="bg-[#0B0B0F]/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
+      <div className="container mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
+        <Link href="/" className="text-3xl font-bold text-yellow-400">Otopadang</Link>
+        
+        {/* Desktop Menu */}
+        <nav className="hidden md:flex items-center gap-8 font-semibold">
+          <Link href="/mobil" className="text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
+          <Link href="/rumah" className="text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
+          <Link href="/blog" className="text-gray-300 hover:text-yellow-400 transition">Blog</Link>
+        </nav>
 
-      {/* HERO BANNER */}
-      <section className="relative h-[90vh] flex items-center justify-center text-center bg-black overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2070" className="absolute w-full h-full object-cover opacity-15" alt="Luxury Car"/>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0F] to-transparent"></div>
-
-        <motion.div initial={{opacity: 0, y: 30}} animate={{opacity: 1, y: 0}} transition={{duration: 1, delay: 0.2}}>
-          <h1 className="text-5xl md:text-8xl font-bold gold-text">Otopadang</h1>
-          <p className="text-xl md:text-2xl mt-4 text-gray-300">Portal #1 Mobil & Rumah Mewah di Padang</p>
-          <div className="mt-10 flex gap-4 justify-center">
-            <a href="#fitur" className="btn-gold">Jelajahi</a>
-            <Link href="/register-showroom" className="border border-yellow-500 text-yellow-400 font-bold py-3 px-6 rounded-lg hover:bg-yellow-500 hover:text-black transition">Daftar Showroom</Link>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* FITUR SECTION */}
-      <section id="fitur" className="container mx-auto max-w-7xl px-4 py-24">
-        <motion.h2 initial={{opacity:0}} whileInView={{opacity:1}} className="text-4xl font-bold text-center mb-16 gold-text">Kenapa Pilih Kami</motion.h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {fitur.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: i * 0.2 }}
-              viewport={{ once: true }}
-              className="bg-[#1A1A1F] border border-gray-800 p-8 rounded-2xl text-center hover:border-yellow-500 transition-all duration-300"
-            >
-              <div className="text-5xl mb-4">{item.icon}</div>
-              <h3 className="text-2xl font-bold text-white mb-2">{item.title}</h3>
-              <p className="text-gray-400">{item.desc}</p>
-            </motion.div>
-          ))}
+        <div className="hidden md:flex items-center gap-3">
+          <Link href="/login" className="px-4 py-2 text-sm font-semibold text-yellow-400 border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">
+            Login
+          </Link>
+          <Link href="/register-showroom" className="px-4 py-2 text-sm font-semibold bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition">
+            Daftar Showroom
+          </Link>
         </div>
-      </section>
 
-      {/* CTA SECTION */}
-      <section className="bg-gradient-to-r from-yellow-600 to-amber-400 text-black py-20 text-center">
-        <h2 className="text-4xl font-bold mb-4">Punya Showroom?</h2>
-        <p className="text-lg mb-6">Jangkau ribuan pembeli di Padang sekarang juga</p>
-        <Link href="/register-showroom" className="bg-black text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-800 transition">Daftar Gratis</Link>
-      </section>
+        {/* Mobile Button */}
+        <button className="md:hidden text-gray-300" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+      </div>
 
-      {/* HAPUS FOOTER JUGA KALAU UDAH ADA DI LAYOUT */}
-      {/* <footer>...</footer> */}
-    </main>
-  );
+      {/* Mobile Slide Down Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-[#0B0B0F] border-t border-gray-800 px-6 py-6 flex flex-col gap-5 animate-in slide-in-from-top duration-300">
+          <Link href="/mobil" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
+          <Link href="/rumah" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
+          <Link href="/blog" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Blog</Link>
+          
+          <div className="border-t border-gray-800 pt-4 flex flex-col gap-3"> 
+            <Link href="/login" onClick={() => setIsOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">
+              Login Admin/Showroom
+            </Link>
+            <Link href="/register-showroom" onClick={() => setIsOpen(false)} className="block w-full bg-yellow-500 text-black text-center py-3 rounded-lg font-semibold hover:bg-yellow-400 transition">
+              Daftar Showroom
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
+  )
 }
