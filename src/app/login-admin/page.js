@@ -15,7 +15,8 @@ export default function LoginAdminPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      // FIX 1: TAMBAH /auth
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -23,14 +24,24 @@ export default function LoginAdminPage() {
       const data = await res.json()
 
       if(res.ok){
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('role', 'admin') // PAKSA ROLE ADMIN
-        router.push('/admin') // LANGSUNG KE DASHBOARD ADMIN
+        // FIX 2: PAKE access_token + AMBIL ROLE DARI API
+        localStorage.setItem('token', data.access_token) 
+        localStorage.setItem('role', data.role)
+        localStorage.setItem('email', data.email)
+        
+        // JAGA2: PASTIIN BENERAN ADMIN
+        if(data.role !== 'admin'){
+          alert('Akun ini bukan admin')
+          localStorage.clear()
+          return
+        }
+        router.push('/admin')
       } else {
-        alert(data.message || 'Login gagal')
+        // FIX 3: AMBIL data.detail KARENA FASTAPI PAKE ITU
+        alert(data.detail?.message || data.detail || 'Login gagal')
       }
-    } catch {
-      alert('Server error')
+    } catch (error) {
+      alert('Server error: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -38,7 +49,7 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin</h1>
         
         <input 
@@ -46,7 +57,7 @@ export default function LoginAdminPage() {
           placeholder="Email Admin"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white"
           required
         />
         <input 
@@ -54,7 +65,7 @@ export default function LoginAdminPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white"
           required
         />
         
