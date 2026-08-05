@@ -16,7 +16,6 @@ export default function AdminPage() {
     const t = localStorage.getItem('token')
     const role = localStorage.getItem('role')
 
-    // FIX 1: PENJAGA ROLE ADMIN
     if (!t || role!== 'admin') {
       alert('Akses ditolak. Login sebagai admin dulu')
       return router.replace('/login-admin')
@@ -28,18 +27,24 @@ export default function AdminPage() {
   const fetchData = async (t) => {
     setLoading(true)
     try {
-      // FIX 2: KASIH TRY CATCH BIAR GA CRASH
+      // FIX: SESUAIKAN URL KE BACKEND
       const [resMobil, resShowroom] = await Promise.all([
-        fetch(`${API_URL}/mobil/pending`, { headers: { 'Authorization': `Bearer ${t}` } }),
-        fetch(`${API_URL}/showroom/`, { headers: { 'Authorization': `Bearer ${t}` } })
+        fetch(`${API_URL}/admin/mobil`, { headers: { 'Authorization': `Bearer ${t}` } }),
+        fetch(`${API_URL}/admin/showrooms`, { headers: { 'Authorization': `Bearer ${t}` } })
       ])
 
-      if(!resMobil.ok ||!resShowroom.ok) throw new Error('Gagal fetch data')
+      if(!resMobil.ok ||!resShowroom.ok) throw new Error(`Gagal fetch data: ${resMobil.status}`)
 
-      setMobilPending(await resMobil.json())
-      setShowrooms(await resShowroom.json())
+      const dataMobil = await resMobil.json()
+      const dataShowroom = await resShowroom.json()
+      
+      // Filter manual mobil yang statusnya pending
+      setMobilPending(dataMobil.filter(m => m.status === "pending"))
+      setShowrooms(dataShowroom)
+
     } catch (error) {
       alert('Error: ' + error.message)
+      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -47,20 +52,38 @@ export default function AdminPage() {
 
   const handleApprove = async (mobilId) => {
     if(!confirm('Yakin approve mobil ini?')) return
-    await fetch(`${API_URL}/mobil/${mobilId}/approve`, {
-      method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`${API_URL}/mobil/${mobilId}`, {
+      method: 'PUT', 
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: "approved" }) // Kirim body update
     })
-    alert('Mobil disetujui!')
-    fetchData(token)
+    if(res.ok){
+      alert('Mobil disetujui!')
+      fetchData(token)
+    } else {
+      alert('Gagal approve mobil')
+    }
   }
 
   const handleSetPremium = async (showroomId) => {
     if(!confirm('Jadikan showroom ini Premium?')) return
-    await fetch(`${API_URL}/showroom/${showroomId}/premium`, {
-      method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`${API_URL}/showroom/${showroomId}`, {
+      method: 'PUT', 
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ is_premium: true, kuota_mobil: 100 }) // Kirim body update
     })
-    alert('Showroom jadi Premium!')
-    fetchData(token)
+    if(res.ok){
+      alert('Showroom jadi Premium!')
+      fetchData(token)
+    } else {
+      alert('Gagal set premium')
+    }
   }
 
   const handleLogout = () => {
