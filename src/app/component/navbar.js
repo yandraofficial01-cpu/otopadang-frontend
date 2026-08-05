@@ -20,7 +20,7 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login" className="px-4 py-2 text-sm font-semibold text-yellow-400 border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">
+          <Link href="/login" className="px-4 py-2 text-sm font-semibold text-yellow-400 border border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">
             Login
           </Link>
           <Link href="/register-showroom" className="px-4 py-2 text-sm font-semibold bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition">
@@ -41,11 +41,12 @@ export default function Navbar() {
           <Link href="/rumah" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
           <Link href="/blog" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Blog</Link>
           
-          <div className="border-t border-gray-800 pt-4 flex-col gap-3"> {/* FIX: TAMBAH flex */}
-            <Link href="/login" onClick={() => setIsOpen(false)} className="text-center text-yellow-400 font-semibold border border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">
+          {/* UDAH DIFIX BAGIAN INI */}
+          <div className="border-t border-gray-800 pt-4 flex flex-col gap-3"> 
+            <Link href="/login" onClick={() => setIsOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">
               Login Admin/Showroom
             </Link>
-            <Link href="/register-showroom" onClick={() => setIsOpen(false)} className="bg-yellow-500 text-black text-center py-3 rounded-lg font-semibold hover:bg-yellow-400 transition">
+            <Link href="/register-showroom" onClick={() => setIsOpen(false)} className="block w-full bg-yellow-500 text-black text-center py-3 rounded-lg font-semibold hover:bg-yellow-400 transition">
               Daftar Showroom
             </Link>
           </div>
