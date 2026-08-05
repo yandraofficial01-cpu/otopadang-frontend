@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,79 +10,81 @@ export default function AdminPage() {
   const [mobilPending, setMobilPending] = useState([])
   const [showrooms, setShowrooms] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('') // ganti alert jadi text
   const router = useRouter()
 
-  useEffect(() => {
-    const t = localStorage.getItem('token')
-    const role = localStorage.getItem('role')
-
-    if (!t || role!== 'admin') {
-      alert('Akses ditolak. Login sebagai admin dulu')
-      return router.replace('/login-admin')
-    }
-    setToken(t)
-    fetchData(t)
-  }, [router])
-
-  const fetchData = async (t) => {
+  const fetchData = useCallback(async (t, retry = 0) => {
     setLoading(true)
+    setError('')
     try {
-      // FIX: SESUAIKAN URL KE BACKEND
       const [resMobil, resShowroom] = await Promise.all([
         fetch(`${API_URL}/admin/mobil`, { headers: { 'Authorization': `Bearer ${t}` } }),
         fetch(`${API_URL}/admin/showrooms`, { headers: { 'Authorization': `Bearer ${t}` } })
       ])
 
-      if(!resMobil.ok ||!resShowroom.ok) throw new Error(`Gagal fetch data: ${resMobil.status}`)
+      if(!resMobil.ok || !resShowroom.ok) throw new Error(`Gagal fetch: ${resMobil.status}`)
 
       const dataMobil = await resMobil.json()
       const dataShowroom = await resShowroom.json()
       
-      // Filter manual mobil yang statusnya pending
       setMobilPending(dataMobil.filter(m => m.status === "pending"))
       setShowrooms(dataShowroom)
 
     } catch (error) {
-      alert('Error: ' + error.message)
       console.error(error)
+      if(retry < 2){ // auto retry 2x kalau railway tidur
+        setTimeout(() => fetchData(t, retry + 1), 2000)
+      } else {
+        setError('Gagal konek ke server. Coba refresh.') // ga pake alert
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const t = localStorage.getItem('token')
+    const role = localStorage.getItem('role')
+
+    if (!t || role !== 'admin') {
+      router.replace('/login-admin')
+      return
+    }
+    setToken(t)
+    fetchData(t)
+  }, [router, fetchData])
 
   const handleApprove = async (mobilId) => {
     if(!confirm('Yakin approve mobil ini?')) return
-    const res = await fetch(`${API_URL}/mobil/${mobilId}`, {
+    const res = await fetch(`${API_URL}/admin/mobil/${mobilId}`, { // TAMBAH /admin/
       method: 'PUT', 
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ status: "approved" }) // Kirim body update
+      body: JSON.stringify({ status: "approved" })
     })
     if(res.ok){
-      alert('Mobil disetujui!')
-      fetchData(token)
+      fetchData(token) // refresh tanpa alert
     } else {
-      alert('Gagal approve mobil')
+      setError('Gagal approve mobil')
     }
   }
 
   const handleSetPremium = async (showroomId) => {
     if(!confirm('Jadikan showroom ini Premium?')) return
-    const res = await fetch(`${API_URL}/showroom/${showroomId}`, {
+    const res = await fetch(`${API_URL}/admin/showroom/${showroomId}`, { // TAMBAH /admin/
       method: 'PUT', 
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ is_premium: true, kuota_mobil: 100 }) // Kirim body update
+      body: JSON.stringify({ is_premium: true, kuota_mobil: 100 })
     })
     if(res.ok){
-      alert('Showroom jadi Premium!')
       fetchData(token)
     } else {
-      alert('Gagal set premium')
+      setError('Gagal set premium')
     }
   }
 
@@ -100,8 +102,10 @@ export default function AdminPage() {
         <button onClick={handleLogout} className="bg-red-600 px-4 py-2 rounded-lg">Logout</button>
       </div>
 
+      {error && <div className="bg-red-900/50 border-red-500 p-3 rounded-lg mb-4">{error}</div>} {/* GANTI ALERT */}
+
       {/* SECTION 1: APPROVE CEPAT */}
-      <div className="mb-8 p-6 border border-green-500 rounded-xl bg-green-900/20">
+      <div className="mb-8 p-6 border-green-500 rounded-xl bg-green-900/20">
         <h2 className="text-xl font-bold mb-4 text-green-400">🔥 Tugas Utama: Review Mobil Baru</h2>
         {mobilPending.length === 0? <p className="text-gray-500">Tidak ada mobil baru</p> :
           mobilPending.slice(0, 5).map(mobil => (
@@ -140,13 +144,13 @@ export default function AdminPage() {
         <Link href="/admin/upload-rumah" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Upload Rumah</h2>
         </Link>
-        <Link href="/admin/blog" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
+        <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Kelola Blog</h2>
         </Link>
         <Link href="/admin/register-showroom" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Daftar Showroom</h2>
         </Link>
-        <Link href="/admin/approve-showroom" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
+        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Approve Showroom</h2>
         </Link>
       </div>
