@@ -15,7 +15,6 @@ export default function LoginShowroomPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      // FIX 1: TAMBAH /auth
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,14 +23,12 @@ export default function LoginShowroomPage() {
       const data = await res.json()
 
       if(res.ok){
-        // FIX 2: PAKE access_token + SIMPEN DATA DARI API
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('role', data.role)
         localStorage.setItem('showroom_id', data.showroom_id)
         localStorage.setItem('nama_showroom', data.nama_showroom)
         localStorage.setItem('email', data.email)
 
-        // JAGA2: PASTIIN BENERAN SHOWROOM
         if(data.role !== 'showroom'){
           alert('Akun ini bukan showroom')
           localStorage.clear()
@@ -39,7 +36,6 @@ export default function LoginShowroomPage() {
         }
         router.push('/dashboard/mobil/input')
       } else {
-        // FIX 3: HANDLE ERROR 403 BELUM APPROVE
         if(res.status === 403 && data.detail?.hubungi_admin){
           if(confirm(data.detail.message + '\n\nHubungi admin via WA?')){
             window.open(data.detail.hubungi_admin, '_blank')
@@ -56,8 +52,8 @@ export default function LoginShowroomPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
         <h1 className="text-3xl font-bold text-white mb-6 text-center">Login Showroom</h1>
         
         <input 
@@ -65,7 +61,7 @@ export default function LoginShowroomPage() {
           placeholder="Email Showroom"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
           required
         />
         <input 
@@ -73,16 +69,16 @@ export default function LoginShowroomPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
           required
         />
         
-        <button disabled={loading} className="w-full bg-gray-700 text-white font-bold py-3 rounded-lg hover:bg-gray-600 transition disabled:opacity-50">
+        <button disabled={loading} className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50">
           {loading ? 'Loading...' : 'Masuk sebagai Showroom'}
         </button>
         
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Belum punya akun? <Link href="/register-showroom" className="text-yellow-400">Daftar Showroom</Link>
+        <p className="text-center text-sm text-gray-400 mt-6">
+          Belum punya akun? <Link href="/daftar-showroom" className="text-yellow-400 font-semibold hover:underline">Daftar Showroom</Link>
         </p>
       </form>
     </div>
