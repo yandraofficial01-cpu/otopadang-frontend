@@ -12,7 +12,6 @@ export default function Navbar() {
       <div className="container mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
         <Link href="/" className="text-3xl font-bold text-yellow-400">Otopadang</Link>
         
-        {/* Desktop Menu */}
         <nav className="hidden md:flex items-center gap-8 font-semibold">
           <Link href="/mobil" className="text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
           <Link href="/rumah" className="text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
@@ -28,15 +27,13 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Mobile Button */}
         <button className="md:hidden text-gray-300" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
-      {/* Mobile Slide Down Menu */}
       {isOpen && (
-        <div className="md:hidden bg-[#0B0B0F] border-t border-gray-800 px-6 py-6 flex-col gap-5">
+        <div className="md:hidden bg-[#0B0B0F] border-t border-gray-800 px-6 py-6 flex flex-col gap-5">
           <Link href="/mobil" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
           <Link href="/rumah" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
           <Link href="/blog" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Blog</Link>
