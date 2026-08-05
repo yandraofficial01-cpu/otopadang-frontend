@@ -36,13 +36,13 @@ export default function Navbar() {
 
       {/* Mobile Slide Down Menu */}
       {isOpen && (
-        <div className="md:hidden bg-[#0B0B0F] border-t border-gray-800 px-6 py-6 flex flex-col gap-5 animate-in slide-in-from-top duration-300">
+        <div className="md:hidden bg-[#0B0B0F] border-t border-gray-800 px-6 py-6 flex-col gap-5">
           <Link href="/mobil" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Mobil</Link>
           <Link href="/rumah" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Rumah</Link>
           <Link href="/blog" onClick={() => setIsOpen(false)} className="text-lg text-gray-300 hover:text-yellow-400 transition">Blog</Link>
           
-          {/* UDAH DIFIX BAGIAN INI */}
-          <div className="border-t border-gray-800 pt-4 flex flex-col gap-3"> 
+          <div className="border-t border-gray-800 pt-4 flex-col gap-3"> 
+            {/* INI YG DIFIX: tambah 'border' */}
             <Link href="/login" onClick={() => setIsOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">
               Login Admin/Showroom
             </Link>
