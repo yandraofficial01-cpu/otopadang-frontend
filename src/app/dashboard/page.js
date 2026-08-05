@@ -1,23 +1,25 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation' // TAMBAH
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter() // TAMBAH
 
   // PENJAGA: Kalau belum login, paksa ke login
   useEffect(() => {
     const showroom_id = localStorage.getItem('showroom_id')
     if (!showroom_id) {
-      window.location.href = '/login' // paksa redirect
+      router.replace('/login') // GANTI DARI window.location
     } else {
       setIsLoading(false)
     }
-  }, [])
+  }, [router]) // TAMBAH router
 
   // FUNGSI LOGOUT PAKSA
   const handleLogout = () => {
     localStorage.clear() // hapus semua data
-    window.location.href = '/login' // paksa pindah halaman + refresh
+    router.replace('/login') // GANTI DARI window.location
   }
 
   if (isLoading) return <div className="p-8 text-center">Loading...</div>
@@ -37,15 +39,15 @@ export default function DashboardPage() {
 
       {/* Statistik Cepat */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+        <div className="p-6 border-gray-800 rounded-xl bg-gray-900/50"> {/* FIX */}
           <p className="text-sm text-gray-400">Total Rumah</p>
           <h2 className="text-2xl font-bold text-yellow-400">0</h2>
         </div>
-        <div className="p-6 border-gray-800 rounded-xl bg-gray-900/50">
+        <div className="p-6 border-gray-800 rounded-xl bg-gray-900/50"> {/* FIX */}
           <p className="text-sm text-gray-400">Total Mobil</p>
           <h2 className="text-2xl font-bold text-yellow-400">0</h2>
         </div>
-        <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+        <div className="p-6 border-gray-800 rounded-xl bg-gray-900/50">
           <p className="text-sm text-gray-400">Total Showroom</p>
           <h2 className="text-2xl font-bold text-yellow-400">0</h2>
         </div>
@@ -54,16 +56,16 @@ export default function DashboardPage() {
       {/* Menu Aksi Cepat */}
       <h2 className="text-xl font-bold mb-4">Aksi Cepat</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <a href="/rumah/input" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold">
+        <a href="/rumah/input" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold">
           + Input Rumah
         </a>
-        <a href="/dashboard/mobil/input" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold">
+        <a href="/dashboard/mobil/input" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold"> {/* FIX */}
           + Input Mobil
         </a>
-        <a href="/rumah" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold">
+        <a href="/rumah" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold"> {/* FIX */}
           Kelola Rumah
         </a>
-        <a href="/mobil" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold">
+        <a href="/mobil" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center font-semibold"> {/* FIX */}
           Kelola Mobil
         </a>
       </div>
