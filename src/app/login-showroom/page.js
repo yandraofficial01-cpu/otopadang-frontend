@@ -15,7 +15,8 @@ export default function LoginShowroomPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      // FIX 1: TAMBAH /auth
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -23,14 +24,32 @@ export default function LoginShowroomPage() {
       const data = await res.json()
 
       if(res.ok){
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('role', 'showroom') // PAKSA ROLE SHOWROOM
-        router.push('/dashboard/mobil/input') // LANGSUNG KE INPUT MOBIL
+        // FIX 2: PAKE access_token + SIMPEN DATA DARI API
+        localStorage.setItem('token', data.access_token)
+        localStorage.setItem('role', data.role)
+        localStorage.setItem('showroom_id', data.showroom_id)
+        localStorage.setItem('nama_showroom', data.nama_showroom)
+        localStorage.setItem('email', data.email)
+
+        // JAGA2: PASTIIN BENERAN SHOWROOM
+        if(data.role !== 'showroom'){
+          alert('Akun ini bukan showroom')
+          localStorage.clear()
+          return
+        }
+        router.push('/dashboard/mobil/input')
       } else {
-        alert(data.message || 'Login gagal')
+        // FIX 3: HANDLE ERROR 403 BELUM APPROVE
+        if(res.status === 403 && data.detail?.hubungi_admin){
+          if(confirm(data.detail.message + '\n\nHubungi admin via WA?')){
+            window.open(data.detail.hubungi_admin, '_blank')
+          }
+        } else {
+          alert(data.detail?.message || data.detail || 'Login gagal')
+        }
       }
-    } catch {
-      alert('Server error')
+    } catch (error) {
+      alert('Server error: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -46,7 +65,7 @@ export default function LoginShowroomPage() {
           placeholder="Email Showroom"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white"
           required
         />
         <input 
@@ -54,7 +73,7 @@ export default function LoginShowroomPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white"
           required
         />
         
