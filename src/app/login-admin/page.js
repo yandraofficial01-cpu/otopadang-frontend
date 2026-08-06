@@ -15,7 +15,6 @@ export default function LoginAdminPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      // FIX 1: TAMBAH /auth
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,12 +23,11 @@ export default function LoginAdminPage() {
       const data = await res.json()
 
       if(res.ok){
-        // FIX 2: PAKE access_token + AMBIL ROLE DARI API
-        localStorage.setItem('token', data.access_token) 
+        // FIX: PAKE token_admin BIAR GA KETUKER
+        localStorage.setItem('token_admin', data.access_token) 
         localStorage.setItem('role', data.role)
         localStorage.setItem('email', data.email)
         
-        // JAGA2: PASTIIN BENERAN ADMIN
         if(data.role !== 'admin'){
           alert('Akun ini bukan admin')
           localStorage.clear()
@@ -37,7 +35,6 @@ export default function LoginAdminPage() {
         }
         router.push('/admin')
       } else {
-        // FIX 3: AMBIL data.detail KARENA FASTAPI PAKE ITU
         alert(data.detail?.message || data.detail || 'Login gagal')
       }
     } catch (error) {
@@ -48,8 +45,8 @@ export default function LoginAdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin</h1>
         
         <input 
@@ -65,7 +62,7 @@ export default function LoginAdminPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white"
+          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white"
           required
         />
         
