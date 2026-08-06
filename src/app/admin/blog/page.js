@@ -1,23 +1,27 @@
 'use client'
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { useRouter } from "next/navigation" // TAMBAH INI
 
-const API_URL = "https://otopadang-api.up.railway.app" // UDAH DIGANTI
+const API_URL = "https://otopadang-api.up.railway.app"
 
 export default function KelolaBlogPage() {
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({judul: "", isi: "", gambar: "", kategori: "Tips"})
   const [token, setToken] = useState("")
+  const router = useRouter() // TAMBAH INI
 
-  // 1. AMBIL TOKEN DARI BROWSER DOANG
+  // 1. AMBIL TOKEN DARI BROWSER DOANG - FIX SSR
   useEffect(() => {
     const t = localStorage.getItem("token")
     if (!t) {
       alert("Lu belum login admin!")
+      router.push("/login-admin") // OTOMATIS LEMPAR KE LOGIN
+      return
     }
-    setToken(t || "")
-  }, [])
+    setToken(t)
+  }, [router])
 
   // 2. AMBIL DATA BLOG KALO TOKEN UDAH ADA
   useEffect(() => {
@@ -31,10 +35,11 @@ export default function KelolaBlogPage() {
       setLoading(false)
     }).catch(err => {
       console.log(err)
-      alert("Gagal ambil data blog. Cek token lu udah login belum")
+      alert("Gagal ambil data blog. Token kadaluarsa")
+      router.push("/login-admin") // KALO TOKEN JELEK LEMPAR LOGIN LAGI
       setLoading(false)
     })
-  }, [token])
+  }, [token, router])
 
   // 3. FUNCTION TAMBAH BLOG
   const handleSubmit = async (e) => {
@@ -47,7 +52,11 @@ export default function KelolaBlogPage() {
       })
       alert("Blog berhasil dipublish!")
       setForm({judul: "", isi: "", gambar: "", kategori: "Tips"})
-      window.location.reload()
+      // JANGAN RELOAD, FETCH ULANG AJA
+      const res = await axios.get(`${API_URL}/blog/admin`, {
+        headers: {Authorization: `Bearer ${token}`}
+      })
+      setBlogs(res.data)
     } catch (err) {
       alert("Gagal publish blog. Cek console")
       console.log(err)
@@ -60,32 +69,10 @@ export default function KelolaBlogPage() {
 
       {/* FORM TAMBAH BLOG */}
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6 space-y-3">
-        <input
-          className="w-full p-2 rounded bg-gray-700 outline-none"
-          placeholder="Judul Artikel"
-          value={form.judul}
-          onChange={e=>setForm({...form, judul: e.target.value})}
-          required
-        />
-        <textarea
-          className="w-full p-2 rounded bg-gray-700 outline-none"
-          placeholder="Isi Artikel Otomotif & Properti"
-          rows={8}
-          value={form.isi}
-          onChange={e=>setForm({...form, isi: e.target.value})}
-          required
-        />
-        <input
-          className="w-full p-2 rounded bg-gray-700 outline-none"
-          placeholder="Link Gambar Cover"
-          value={form.gambar}
-          onChange={e=>setForm({...form, gambar: e.target.value})}
-        />
-        <select
-          className="w-full p-2 rounded bg-gray-700 outline-none"
-          value={form.kategori}
-          onChange={e=>setForm({...form, kategori: e.target.value})}
-        >
+        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={e=>setForm({...form, judul: e.target.value})} required />
+        <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.isi} onChange={e=>setForm({...form, isi: e.target.value})} required />
+        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Link Gambar Cover" value={form.gambar} onChange={e=>setForm({...form, gambar: e.target.value})} />
+        <select className="w-full p-2 rounded bg-gray-700 outline-none" value={form.kategori} onChange={e=>setForm({...form, kategori: e.target.value})}>
           <option>Tips</option>
           <option>Otomotif</option>
           <option>Properti</option>
@@ -101,25 +88,14 @@ export default function KelolaBlogPage() {
       {loading? <p>Loading...</p> : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="p-2">Judul</th>
-                <th className="p-2">Kategori</th>
-                <th className="p-2">Status</th>
-              </tr>
-            </thead>
+            <thead><tr className="border-b border-gray-700"><th className="p-2">Judul</th><th className="p-2">Kategori</th><th className="p-2">Status</th></tr></thead>
             <tbody>
-              {blogs.length === 0? (
-                <tr><td colSpan={3} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>
-              ) : blogs.map(b => (
+              {blogs.length === 0? (<tr><td colSpan={3} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>) :
+              blogs.map(b => (
                 <tr key={b.id} className="border-b border-gray-800 hover:bg-gray-800">
                   <td className="p-2">{b.judul}</td>
                   <td className="p-2">{b.kategori}</td>
-                  <td className="p-2">
-                    <span className={`px-2 py-1 rounded text-xs ${b.status === 'approved'? 'bg-green-600' : 'bg-yellow-600'}`}>
-                      {b.status}
-                    </span>
-                  </td>
+                  <td className="p-2"><span className={`px-2 py-1 rounded text-xs ${b.status === 'approved'? 'bg-green-600' : 'bg-yellow-600'}`}>{b.status}</span></td>
                 </tr>
               ))}
             </tbody>
