@@ -23,16 +23,19 @@ export default function LoginAdminPage() {
       const data = await res.json()
 
       if(res.ok){
-        // FIX: PAKE token_admin BIAR GA KETUKER
-        localStorage.setItem('token_admin', data.access_token) 
+        // 1. CEK ROLE DULU
+        if(data.role !== 'admin'){
+          alert('Akun ini bukan admin')
+          return
+        }
+
+        // 2. SIMPEN KE COOKIE BIAR MIDDLEWARE BACA
+        document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+        
+        // 3. SIMPEN INFO LAIN DI LOCALSTORAGE BOLEH
         localStorage.setItem('role', data.role)
         localStorage.setItem('email', data.email)
         
-        if(data.role !== 'admin'){
-          alert('Akun ini bukan admin')
-          localStorage.clear()
-          return
-        }
         router.push('/admin')
       } else {
         alert(data.detail?.message || data.detail || 'Login gagal')
