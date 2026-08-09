@@ -33,7 +33,7 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Fetch error:", error)
       if(retry < 2){ 
-        setTimeout(() => fetchData(t, retry + 1), 2000) // auto retry kalau railway cold start
+        setTimeout(() => fetchData(t, retry + 1), 2000)
       } else {
         setError('Gagal konek ke server. Coba refresh atau cek token login.')
       }
@@ -43,14 +43,24 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    // FIX PENTING: pake token_admin biar ga ketuker sama token showroom
-    const t = localStorage.getItem('token_admin') || localStorage.getItem('token')
+    // FIX: Samain sama yang di login-admin, baca semua kemungkinan key
+    const t = localStorage.getItem('access_token') || localStorage.getItem('token_admin') || localStorage.getItem('token')
     const role = localStorage.getItem('role')
 
-    if (!t || role !== 'admin') {
+    console.log('Token ketemu?', !!t, 'Role:', role)
+
+    if (!t) {
+      console.log('Token kosong, balik ke login')
       router.replace('/login-admin')
       return
     }
+    
+    if (role !== 'admin') {
+      setError('Role kamu bukan admin: ' + role)
+      setLoading(false)
+      return
+    }
+
     setToken(t)
     fetchData(t)
   }, [router, fetchData])
@@ -67,7 +77,7 @@ export default function AdminPage() {
         body: JSON.stringify({ status: "approved" })
       })
       if(res.ok){
-        fetchData(token) // refresh data
+        fetchData(token)
       } else {
         setError('Gagal approve mobil')
       }
@@ -98,9 +108,14 @@ export default function AdminPage() {
   }
 
   const handleLogout = () => {
+    // Hapus semua key biar bersih
+    localStorage.removeItem('access_token')
     localStorage.removeItem('token_admin')
+    localStorage.removeItem('token')
     localStorage.removeItem('role')
-    router.push('/login-admin')
+    localStorage.removeItem('email')
+    document.cookie = "token=; path=/; max-age=0"
+    router.replace('/login-admin')
   }
 
   if(loading) return <div className="p-10 text-center text-white bg-[#0B0B0F] min-h-screen">Loading data admin...</div>
@@ -114,7 +129,6 @@ export default function AdminPage() {
 
       {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4">{error}</div>}
 
-      {/* SECTION 1: APPROVE CEPAT */}
       <div className="mb-8 p-6 border border-green-500 rounded-xl bg-green-900/20">
         <h2 className="text-xl font-bold mb-4 text-green-400">🔥 Tugas Utama: Review Mobil Baru</h2>
         {mobilPending.length === 0? <p className="text-gray-500">Tidak ada mobil baru</p> :
@@ -130,7 +144,6 @@ export default function AdminPage() {
         }
       </div>
 
-      {/* SECTION 2: PREMIUM SHOWROOM */}
       <div className="mb-8 p-6 border-yellow-500 rounded-xl bg-yellow-900/20">
         <h2 className="text-xl font-bold mb-4 text-yellow-400">👑 Manajemen Premium Showroom</h2>
         {showrooms.length === 0? <p className="text-gray-500">Belum ada showroom</p> :
@@ -150,10 +163,9 @@ export default function AdminPage() {
         }
       </div>
 
-      {/* SECTION 3: MENU LAINNYA */}
       <h2 className="text-xl font-bold mb-4">Menu Lainnya</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/admin/upload-rumah" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
+        <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Upload Rumah</h2>
         </Link>
         <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
@@ -162,7 +174,7 @@ export default function AdminPage() {
         <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Daftar Showroom</h2>
         </Link>
-        <Link href="/admin/approve-showroom" className="p-4 border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
+        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center">
           <h2 className="font-bold">Approve Showroom</h2>
         </Link>
       </div>
