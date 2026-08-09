@@ -23,18 +23,25 @@ export default function LoginAdminPage() {
       const data = await res.json()
 
       if(res.ok){
+        // FIX: API return di dalam data.user, bukan data langsung
+        const userRole = data.user?.role || data.role
+        const userEmail = data.user?.email || data.email
+
+        console.log('Role dari API:', userRole) // buat debug
+
         // 1. CEK ROLE DULU
-        if(data.role !== 'admin'){
-          alert('Akun ini bukan admin')
+        if(userRole !== 'admin'){
+          alert('Akun ini bukan admin, role kamu: ' + userRole)
           return
         }
 
         // 2. SIMPEN KE COOKIE BIAR MIDDLEWARE BACA
         document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
         
-        // 3. SIMPEN INFO LAIN DI LOCALSTORAGE BOLEH
-        localStorage.setItem('role', data.role)
-        localStorage.setItem('email', data.email)
+        // 3. SIMPEN INFO LAIN DI LOCALSTORAGE
+        localStorage.setItem('role', userRole)
+        localStorage.setItem('email', userEmail)
+        localStorage.setItem('access_token', data.access_token)
         
         router.push('/admin')
       } else {
@@ -49,7 +56,7 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin</h1>
         
         <input 
