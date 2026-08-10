@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 const API_URL = 'https://otopadang-api.up.railway.app'
@@ -9,7 +8,6 @@ export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -20,36 +18,51 @@ export default function LoginAdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       })
+      
       const data = await res.json()
+      console.log('RESPONSE FULL:', data) // biar keliatan di console
 
       if(res.ok){
-        // FIX: API return di dalam data.user, bukan data langsung
-        const userRole = data.user?.role || data.role
-        const userEmail = data.user?.email || data.email
+        // FIX 1: Ambil role dengan aman, jangan sampai object
+        const userRole = data.user?.role || data.role || ''
+        const userEmail = data.user?.email || data.email || email
+        const accessToken = data.access_token || data.token
 
-        console.log('Role dari API:', userRole) // buat debug
+        console.log('Role:', userRole, 'Token ada:', !!accessToken)
 
-        // 1. CEK ROLE DULU
+        // FIX 2: Cek role, kalau bukan admin jangan stuck loading
         if(userRole !== 'admin'){
-          alert('Akun ini bukan admin, role kamu: ' + userRole)
+          alert(`Akun ini bukan admin!\nRole kamu: ${JSON.stringify(userRole)}\nData full: ${JSON.stringify(data)}`)
+          setLoading(false)
           return
         }
 
-        // 2. SIMPEN KE COOKIE BIAR MIDDLEWARE BACA
-        document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
-        
-        // 3. SIMPEN INFO LAIN DI LOCALSTORAGE
+        if(!accessToken){
+          alert('Token kosong! Response: ' + JSON.stringify(data))
+          setLoading(false)
+          return
+        }
+
+        // FIX 3: Simpen SEMUA key biar sinkron sama admin/page.jsx
+        document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
+        localStorage.setItem('access_token', accessToken)
+        localStorage.setItem('token', accessToken)
+        localStorage.setItem('token_admin', accessToken)
         localStorage.setItem('role', userRole)
         localStorage.setItem('email', userEmail)
-        localStorage.setItem('access_token', data.access_token)
         
-        router.push('/admin')
+        // FIX 4: Jangan pake router.push, pake href biar middleware ke-trigger
+        window.location.href = '/admin'
+        
       } else {
-        alert(data.detail?.message || data.detail || 'Login gagal')
+        // FIX 5: Alert nya jangan langsung object, pake JSON.stringify
+        const errorMsg = data.detail?.message || data.detail || data.message || JSON.stringify(data)
+        alert('Login gagal: ' + errorMsg)
+        setLoading(false)
       }
     } catch (error) {
+      console.error(error)
       alert('Server error: ' + error.message)
-    } finally {
       setLoading(false)
     }
   }
