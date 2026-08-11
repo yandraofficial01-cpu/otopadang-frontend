@@ -1,5 +1,7 @@
+"use client" // <-- INI WAJIB DI PALING ATAS
+
 import Link from "next/link";
-import { useEffect, useState } from "react"; // TAMBAH INI
+import { useEffect, useState } from "react";
 
 const API_URL = "https://otopadang-api.up.railway.app";
 
@@ -39,7 +41,7 @@ export default function HomePage() {
           <Link href="/mobil" className="px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition">
             Cari Mobil
           </Link>
-          <Link href="/rumah" className="px-8 py-3 border border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition">
+          <Link href="/rumah" className="px-8 py-3 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition">
             Cari Rumah
           </Link>
         </div>
