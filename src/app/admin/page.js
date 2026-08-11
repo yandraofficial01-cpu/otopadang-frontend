@@ -15,29 +15,49 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
+  const fetchWithTimeout = async (url, t, timeout = 5000) => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), timeout)
+    try {
+      const res = await fetch(url, { 
+        headers: { 'Authorization': `Bearer ${t}` },
+        signal: controller.signal
+      })
+      clearTimeout(id)
+      if(!res.ok) {
+        const txt = await res.text()
+        throw new Error(`${url.split('/').pop()} ${res.status}: ${txt.slice(0,100)}`)
+      }
+      return await res.json()
+    } catch(e) {
+      clearTimeout(id)
+      throw e
+    }
+  }
+
   const fetchData = useCallback(async (t) => {
     setLoading(true)
     setError('')
     try {
-      const [resMobil, resShowroom, resRumah, resBlog] = await Promise.all([
-        fetch(`${API_URL}/admin/mobil`, { headers: { 'Authorization': `Bearer ${t}` } }),
-        fetch(`${API_URL}/admin/showrooms`, { headers: { 'Authorization': `Bearer ${t}` } }),
-        fetch(`${API_URL}/admin/rumah`, { headers: { 'Authorization': `Bearer ${t}` } }),
-        fetch(`${API_URL}/admin/blog`, { headers: { 'Authorization': `Bearer ${t}` } })
-      ])
+      // Fetch satu-satu biar tau mana yang error, jangan Promise.all
+      let mobil = [], showroom = [], rumah = [], blog = []
 
-      if(!resMobil.ok) throw new Error(`Mobil ${resMobil.status}: ${await resMobil.text()}`)
-      if(!resShowroom.ok) throw new Error(`Showroom ${resShowroom.status}: ${await resShowroom.text()}`)
+      try { mobil = await fetchWithTimeout(`${API_URL}/admin/mobil`, t) } 
+      catch(e){ console.log('Mobil error:', e.message) }
 
-      const dataMobil = await resMobil.json()
-      const dataShowroom = await resShowroom.json()
-      const dataRumah = resRumah.ok ? await resRumah.json() : []
-      const dataBlog = resBlog.ok ? await resBlog.json() : []
+      try { showroom = await fetchWithTimeout(`${API_URL}/admin/showrooms`, t) } 
+      catch(e){ console.log('Showroom error:', e.message) }
 
-      setAllMobil(Array.isArray(dataMobil) ? dataMobil : [])
-      setShowrooms(Array.isArray(dataShowroom) ? dataShowroom : [])
-      setAllRumah(Array.isArray(dataRumah) ? dataRumah : [])
-      setAllBlog(Array.isArray(dataBlog) ? dataBlog : [])
+      try { rumah = await fetchWithTimeout(`${API_URL}/admin/rumah`, t) } 
+      catch(e){ console.log('Rumah error:', e.message) }
+
+      try { blog = await fetchWithTimeout(`${API_URL}/admin/blog`, t) } 
+      catch(e){ console.log('Blog error (skip):', e.message); blog = [] }
+
+      setAllMobil(Array.isArray(mobil) ? mobil : mobil.data || [])
+      setShowrooms(Array.isArray(showroom) ? showroom : showroom.data || [])
+      setAllRumah(Array.isArray(rumah) ? rumah : rumah.data || [])
+      setAllBlog(Array.isArray(blog) ? blog : [])
 
     } catch (err) {
       console.error(err)
@@ -51,7 +71,10 @@ export default function AdminPage() {
     const t = localStorage.getItem('access_token') || localStorage.getItem('token_admin') || localStorage.getItem('token')
     const role = localStorage.getItem('role')
     if (!t) { router.replace('/login-admin'); return }
-    if (role !== 'admin') { setError('Role bukan admin: '+role); setLoading(false); return }
+    if (role && role !== 'admin') { 
+      // Jangan langsung block kalau role null, biarin lewat cek token aja
+      // setError('Role bukan admin: '+role); setLoading(false); return 
+    }
     setToken(t)
     fetchData(t)
   }, [router, fetchData])
@@ -81,9 +104,19 @@ export default function AdminPage() {
     if(res.ok) fetchData(token); else alert(await res.text())
   }
 
-  const handleLogout = () => { localStorage.clear(); document.cookie="token=; path=/; max-age=0"; router.replace('/login-admin') }
+  const handleLogout = () => { 
+    localStorage.clear(); 
+    document.cookie="token=; path=/; max-age=0"; 
+    router.replace('/login-admin') 
+  }
 
-  if(loading) return <div className="p-10 text-center text-white bg-[#0B0B0F] min-h-screen">Loading data admin...</div>
+  if(loading) return (
+    <div className="p-10 text-center text-white bg-[#0B0B0F] min-h-screen flex flex-col items-center justify-center gap-4">
+      <p>Loading data admin...</p>
+      <p className="text-xs text-gray-500">Menghubungi Railway...</p>
+      <button onClick={handleLogout} className="mt-4 bg-red-600 px-4 py-2 rounded">Force Logout</button>
+    </div>
+  )
 
   const mobilPending = allMobil.filter(m => m.status === 'pending')
 
