@@ -42,7 +42,7 @@ export default function Page() {
     setLoading(true)
     try {
       const payload = {
-      ...form,
+       ...form,
         harga: parseInt(form.harga) || 0,
         harga_kredit: parseInt(form.harga_kredit) || parseInt(form.harga) || 0,
         angsuran: parseInt(form.angsuran) || 0,
@@ -117,6 +117,7 @@ export default function Page() {
               </div>
             ))}
           </div>
+        </div>
         <div>
           <label className="text-sm text-gray-400">Spesifikasi</label>
           <textarea value={form.spesifikasi} onChange={e=>setForm({...form, spesifikasi: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 h-28 outline-none" />
