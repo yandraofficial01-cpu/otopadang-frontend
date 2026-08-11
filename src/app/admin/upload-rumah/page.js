@@ -3,8 +3,9 @@ import { useState } from "react"
 
 const CLOUD_NAME = "jh0ct5rz"
 const UPLOAD_PRESET = "otopadang_preset"
+const API = "https://otopadang-api.up.railway.app"
 
-export default function UploadRumah() {
+export default function Page() {
   const [form, setForm] = useState({
     nama_rumah: "", tipe: "", alamat: "", harga: "", harga_kredit: "",
     angsuran: "", lama_angsuran: "120", luas_tanah: "", luas_bangunan: "",
@@ -15,7 +16,6 @@ export default function UploadRumah() {
   })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState({})
-  const API = "https://otopadang-api.up.railway.app"
 
   const uploadToCloudinary = async (file, index) => {
     setUploading(prev => ({...prev, [index]: true}))
@@ -42,7 +42,7 @@ export default function UploadRumah() {
     setLoading(true)
     try {
       const payload = {
-       ...form,
+      ...form,
         harga: parseInt(form.harga) || 0,
         harga_kredit: parseInt(form.harga_kredit) || parseInt(form.harga) || 0,
         angsuran: parseInt(form.angsuran) || 0,
@@ -58,7 +58,7 @@ export default function UploadRumah() {
       const data = await res.json().catch(()=>({}))
       if(res.ok) {
         alert("Rumah berhasil publish! ✅")
-        setForm({ nama_rumah: "", tipe: "", alamat: "", harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "120", luas_tanah: "", luas_bangunan: "", spesifikasi: "", badge_bonus: "Free Canopy", foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "", foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "", video_url: "", wa_number: "628979879518", status: "available" })
+        window.location.href = "/admin"
       } else {
         alert(`Gagal [${res.status}]: ` + (data.detail || JSON.stringify(data)))
       }
@@ -82,24 +82,20 @@ export default function UploadRumah() {
             <datalist id="tipe-list"><option value="Type 36" /><option value="Type 45" /><option value="Type 60" /><option value="Type 90" /><option value="Subsidi" /><option value="Komersil" /></datalist>
           </div>
         </div>
-
         <div>
           <label className="text-sm text-gray-400">Alamat</label>
           <input value={form.alamat} onChange={e=>setForm({...form, alamat: e.target.value})} placeholder="Koto Tangah, Padang..." className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" />
         </div>
-
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div><label className="text-xs text-gray-400">Harga Cash *</label><input type="number" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
           <div><label className="text-xs text-gray-400">Harga Kredit</label><input type="number" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
           <div><label className="text-xs text-gray-400">LT</label><input type="number" value={form.luas_tanah} onChange={e=>setForm({...form, luas_tanah: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
           <div><label className="text-xs text-gray-400">LB</label><input type="number" value={form.luas_bangunan} onChange={e=>setForm({...form, luas_bangunan: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className="text-xs text-gray-400">Angsuran</label><input type="number" value={form.angsuran} onChange={e=>setForm({...form, angsuran: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
           <div><label className="text-xs text-gray-400">Lama Angsuran</label><input type="number" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
         </div>
-
         <div>
           <label className="text-sm text-yellow-400 font-bold">Foto Rumah (Tap upload, auto Cloudinary)</label>
           <div className="grid grid-cols-2 gap-3 mt-3">
@@ -108,7 +104,7 @@ export default function UploadRumah() {
                 <p className="text-[11px] text-gray-400 mb-2">Foto {i} {i==1?'(Cover)':''}</p>
                 {form[`foto_url_${i}`]? (
                   <div className="space-y-2">
-                    <img src={form[`foto_url_${i}`]} className="w-full h-28 object-cover rounded-lg border border-yellow-400/30" />
+                    <img src={form[`foto_url_${i}`]} className="w-full h-28 object-cover rounded-lg border border-yellow-400/30" alt="" />
                     <button onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="text-[10px] bg-red-500/20 text-red-400 px-2 py-1 rounded">Hapus</button>
                   </div>
                 ) : (
@@ -121,13 +117,10 @@ export default function UploadRumah() {
               </div>
             ))}
           </div>
-        </div>
-
         <div>
           <label className="text-sm text-gray-400">Spesifikasi</label>
           <textarea value={form.spesifikasi} onChange={e=>setForm({...form, spesifikasi: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 h-28 outline-none" />
         </div>
-
         <button onClick={handleSubmit} disabled={loading} className="w-full bg-yellow-400 text-black font-black py-5 rounded-xl text-lg hover:bg-yellow-300 disabled:opacity-50">
           {loading? "Publishing..." : "🚀 Publish Rumah"}
         </button>
