@@ -20,46 +20,49 @@ export default function LoginAdminPage() {
       })
       
       const data = await res.json()
-      console.log('RESPONSE FULL:', data) // biar keliatan di console
+      console.log('RESPONSE FULL:', data)
 
-      if(res.ok){
-        // FIX 1: Ambil role dengan aman, jangan sampai object
-        const userRole = data.user?.role || data.role || ''
-        const userEmail = data.user?.email || data.email || email
-        const accessToken = data.access_token || data.token
-
-        console.log('Role:', userRole, 'Token ada:', !!accessToken)
-
-        // FIX 2: Cek role, kalau bukan admin jangan stuck loading
-        if(userRole !== 'admin'){
-          alert(`Akun ini bukan admin!\nRole kamu: ${JSON.stringify(userRole)}\nData full: ${JSON.stringify(data)}`)
-          setLoading(false)
-          return
-        }
-
-        if(!accessToken){
-          alert('Token kosong! Response: ' + JSON.stringify(data))
-          setLoading(false)
-          return
-        }
-
-        // FIX 3: Simpen SEMUA key biar sinkron sama admin/page.jsx
-        document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
-        localStorage.setItem('access_token', accessToken)
-        localStorage.setItem('token', accessToken)
-        localStorage.setItem('token_admin', accessToken)
-        localStorage.setItem('role', userRole)
-        localStorage.setItem('email', userEmail)
-        
-        // FIX 4: Jangan pake router.push, pake href biar middleware ke-trigger
-        window.location.href = '/admin'
-        
-      } else {
-        // FIX 5: Alert nya jangan langsung object, pake JSON.stringify
-        const errorMsg = data.detail?.message || data.detail || data.message || JSON.stringify(data)
-        alert('Login gagal: ' + errorMsg)
+      if(!res.ok){
+        alert('Login gagal: ' + (data.detail || JSON.stringify(data)))
         setLoading(false)
+        return
       }
+
+      // Ambil data dengan aman - handle semua bentuk response
+      const user = data.user || data
+      const userRole = (user.role || '').toLowerCase()
+      const accessToken = data.access_token || data.token
+
+      if(!accessToken){
+        alert('Token kosong! Hubungi developer')
+        setLoading(false)
+        return
+      }
+
+      // INI KUNCINYA BRO: BLOKIR SHOWROOM DI SINI
+      if(user.showroom_id !== null && user.showroom_id !== undefined){
+        alert(`AKUN SHOWROOM TIDAK BOLEH MASUK SINI!\n\nEmail ini terdaftar sebagai showroom.\nSilahkan login di /login-showroom`)
+        // Tendang langsung ke login showroom
+        window.location.href = '/login-showroom'
+        return
+      }
+
+      if(userRole !== 'admin'){
+        alert(`Akses ditolak! Role kamu: ${userRole || 'tidak ada'}`)
+        setLoading(false)
+        return
+      }
+
+      // Simpen 1 token aja biar gak berantakan, tapi simpen di semua key biar kompatibel
+      localStorage.clear() // bersih-bersih dulu
+      localStorage.setItem('token', accessToken)
+      localStorage.setItem('access_token', accessToken)
+      localStorage.setItem('role', 'admin')
+      localStorage.setItem('email', user.email || email)
+      document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
+
+      window.location.href = '/admin'
+      
     } catch (error) {
       console.error(error)
       alert('Server error: ' + error.message)
