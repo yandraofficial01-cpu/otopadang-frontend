@@ -81,19 +81,26 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0B0B0F]">
-      {/* HERO SECTION */}
+      {/* HERO SECTION - SUDAH DIUPDATE */}
       <section className="container mx-auto max-w-7xl px-4 py-20 text-center">
-        <h1 className="text-5xl md:text-7xl font-bold">
-          <span className="text-yellow-400">Elegance</span> <span className="text-white">in Every Deal</span>
+        <h1 className="text-4xl md:text-6xl font-bold mb-4">
+          <span className="text-white">Selamat Datang di </span>
+          <span className="text-yellow-400">Portal no 1 Urang Padang</span>
         </h1>
+
+        <h2 className="text-2xl md:text-4xl font-semibold text-white mb-6">
+          Temukan Mobil & Rumah Impian Anda Disini
+        </h2>
+
         <p className="text-gray-400 mt-4 text-lg max-w-2xl mx-auto">
-          Portal #1 Jual Beli Mobil & Rumah di Padang. Terpercaya, Cepat, Aman.
+          Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang, siapa tau impian Anda ada disini.
         </p>
+
         <div className="mt-8 flex gap-4 justify-center">
           <Link href="/mobil" className="px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20">
             Cari Mobil
           </Link>
-          <Link href="/rumah" className="px-8 py-3 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition">
+          <Link href="/rumah" className="px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition">
             Cari Rumah
           </Link>
         </div>
