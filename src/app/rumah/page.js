@@ -5,18 +5,18 @@ import { useEffect, useState } from "react";
 
 const API_URL = "https://otopadang-api.up.railway.app";
 
-// PAKE COMPONENT SLIDER YANG SAMA BIAR KONSISTEN
+// COMPONENT SLIDER YANG SAMA BIAR KONSISTEN
 function ImageSlider({ images }) {
   const [current, setCurrent] = useState(0);
   const prev = () => setCurrent(current === 0? images.length - 1 : current - 1);
   const next = () => setCurrent(current === images.length - 1? 0 : current + 1);
 
   return (
-    <div className="relative">
+    <div className="relative overflow-hidden">
       <img
         src={images[current] || 'https://placehold.co/600x400'}
         alt=""
-        className="w-full h-48 object-cover"
+        className="w-full h-48 object-cover group-hover:scale-110 transition duration-500"
       />
       {images.length > 1 && (
         <>
@@ -35,6 +35,7 @@ export default function RumahPage() {
   const [rumahList, setRumahList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [visibleCards, setVisibleCards] = useState(0); // buat animasi stagger
 
   useEffect(() => {
     const getData = async () => {
@@ -45,9 +46,13 @@ export default function RumahPage() {
         if (!res.ok) throw new Error('Gagal ambil data Rumah');
         const result = await res.json();
 
-        // FIX PENTING: Cek kalau datanya ada di result.data atau result langsung
         const data = Array.isArray(result)? result : result.data || [];
         setRumahList(data);
+
+        // Trigger animasi stagger setelah data masuk
+        data.forEach((_, i) => {
+          setTimeout(() => setVisibleCards(i + 1), i * 100) // muncul tiap 100ms
+        })
 
       } catch (err) {
         setError(err.message);
@@ -68,20 +73,37 @@ export default function RumahPage() {
 
   return (
     <main className="min-h-screen bg-[#0B0B0F] container mx-auto max-w-7xl px-4 py-16">
-      <h1 className="text-4xl font-bold text-white mb-8">Semua Rumah di Padang</h1>
 
-      {loading && <p className="text-gray-400">Loading...</p>}
-      {error && <p className="text-red-500">Error: {error}</p>}
+      {/* JUDUL BARU + SUBTEXT */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+          Temukan Rumah Impianmu
+        </h1>
+        <p className="text-gray-400 text-lg">
+          Ratusan pilihan rumah terbaik di Padang. Dari subsidi sampai mewah, semua ada disini.
+        </p>
+      </div>
+
+      {loading && <p className="text-gray-400 text-center">Loading...</p>}
+      {error && <p className="text-red-500 text-center">Error: {error}</p>}
 
       {!loading && rumahList.length === 0 && (
-        <p className="text-gray-400">Belum ada data rumah</p>
+        <p className="text-gray-400 text-center">Belum ada data rumah</p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {rumahList.map(r => {
+        {rumahList.map((r, i) => {
           const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
           return (
-            <div key={r.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 transition-all duration-300 group">
+            <div
+              key={r.id}
+              className={`bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800
+                hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20
+                hover:-translate-y-2 hover:scale-[1.02]
+                transition-all duration-500 group
+                ${i < visibleCards? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`
+              }
+            >
               <ImageSlider images={images} />
               <div className="p-4">
                 <h3 className="font-bold text-lg text-white">{r.nama_rumah}</h3>
