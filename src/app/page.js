@@ -41,11 +41,32 @@ function ImageSlider({ images }) {
   )
 }
 
+// KOMPONEN KURSOR ANIMASI
+function CursorPointer() {
+  return (
+    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 pointer-events-none">
+      <div className="animate-bounce">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg">
+          <path d="M12 2L3 20L12 17L21 20L12 2Z" fill="currentColor" stroke="black" strokeWidth="1.5"/>
+        </svg>
+      </div>
+      <div className="absolute top-1 left-1 w-8 h-8 border-2 border-yellow-400 rounded-full animate-ping"></div>
+    </div>
+  )
+}
+
 export default function HomePage() {
   const [mobil, setMobil] = useState([]);
   const [rumah, setRumah] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCursor, setShowCursor] = useState(true);
+
+  useEffect(() => {
+    // Sembunyikan animasi kursor setelah 5 detik
+    const timer = setTimeout(() => setShowCursor(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const getData = async () => {
@@ -72,7 +93,6 @@ export default function HomePage() {
   }, []);
 
   const pesanWA = (item, tipe) => {
-    // AMBIL NO WA DARI DB
     const noWa = item.wa_number || "62812PUSAT";
     const nama = tipe === 'rumah'? item.nama_rumah : `${item.merk} ${item.tipe}`;
     const text = `Halo Otopadang, saya tertarik dengan ${nama} seharga Rp ${item.harga?.toLocaleString('id-ID')}. Apakah masih tersedia?`;
@@ -81,7 +101,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0B0B0F]">
-      {/* HERO SECTION - SUDAH DIUPDATE */}
+      {/* HERO SECTION */}
       <section className="container mx-auto max-w-7xl px-4 py-20 text-center">
         <h1 className="text-4xl md:text-6xl font-bold mb-4">
           <span className="text-white">Selamat Datang di </span>
@@ -96,13 +116,22 @@ export default function HomePage() {
           Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang, siapa tau impian Anda ada disini.
         </p>
 
-        <div className="mt-8 flex gap-4 justify-center">
-          <Link href="/mobil" className="px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20">
-            Cari Mobil
-          </Link>
-          <Link href="/rumah" className="px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition">
-            Cari Rumah
-          </Link>
+        <div className="mt-8 flex gap-4 justify-center relative">
+          {/* BUTTON CARI MOBIL */}
+          <div className="relative">
+            <Link href="/mobil" className="px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 animate-pulse">
+              Cari Mobil
+            </Link>
+            {showCursor && <CursorPointer />}
+          </div>
+
+          {/* BUTTON CARI RUMAH */}
+          <div className="relative">
+            <Link href="/rumah" className="px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition animate-pulse [animation-delay:0.3s]">
+              Cari Rumah
+            </Link>
+            {showCursor && <CursorPointer />}
+          </div>
         </div>
       </section>
 
@@ -117,7 +146,7 @@ export default function HomePage() {
             mobil.map(m => {
               const images = [m.foto_url_1, m.foto_url_2, m.foto_url_3, m.foto_url_4, m.foto_url_5].filter(Boolean);
               return (
-                <div key={m.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
+                <div key={m.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
                   <ImageSlider images={images} />
                   <div className="p-4">
                     <h3 className="font-bold text-lg text-white">{m.merk} {m.tipe} {m.tahun}</h3>
