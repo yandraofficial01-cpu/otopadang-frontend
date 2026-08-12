@@ -82,13 +82,8 @@ export default function RumahPage() {
           return (
             <div
               key={r.id}
-              style={{ animationDelay: `${i * 100}ms` }} // DELAY STAGGER
-              className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800
-                hover:border-yellow-400 active:border-yellow-400
-                hover:shadow-2xl hover:shadow-yellow-500/20 active:shadow-yellow-500/20
-                hover:-translate-y-2 active:-translate-y-2 hover:scale-[1.02] active:scale-[1.02]
-                transition-all duration-500 group
-                animate-fade-in-up" // ANIMASI UTAMA
+              style={{ animationDelay: `${i * 100}ms` }}
+              className={`bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 active:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20 active:shadow-yellow-500/20 hover:-translate-y-2 active:-translate-y-2 hover:scale-[1.02] active:scale-[1.02] transition-all duration-500 group animate-fade-in-up`}
             >
               <ImageSlider images={images} />
               <div className="p-4">
@@ -108,7 +103,6 @@ export default function RumahPage() {
         })}
       </div>
 
-      {/* TAMBAH CSS KEYFRAME BIAR GAK KENA PURGE */}
       <style jsx global>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -118,7 +112,7 @@ export default function RumahPage() {
           from { opacity: 0; transform: translateY(-20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-       .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+       .animate-fade-in-up { opacity: 0; animation: fadeInUp 0.6s ease-out forwards; }
        .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
       `}</style>
     </main>
