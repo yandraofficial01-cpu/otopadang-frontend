@@ -44,13 +44,15 @@ function ImageSlider({ images }) {
 // KOMPONEN KURSOR ANIMASI
 function CursorPointer() {
   return (
-    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 pointer-events-none">
+    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
+      {/* Kursor */}
       <div className="animate-bounce">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg">
           <path d="M12 2L3 20L12 17L21 20L12 2Z" fill="currentColor" stroke="black" strokeWidth="1.5"/>
         </svg>
       </div>
-      <div className="absolute top-1 left-1 w-8 h-8 border-2 border-yellow-400 rounded-full animate-ping"></div>
+      {/* Lingkaran ping */}
+      <div className="absolute top-1 left-1 w-7 h-7 border-2 border-yellow-400 rounded-full animate-ping"></div>
     </div>
   )
 }
@@ -60,12 +62,14 @@ export default function HomePage() {
   const [rumah, setRumah] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCursor, setShowCursor] = useState(true);
+  const [activeBtn, setActiveBtn] = useState('mobil'); // 'mobil' atau 'rumah'
 
+  // Animasi gantian tiap 2 detik, gak berhenti
   useEffect(() => {
-    // Sembunyikan animasi kursor setelah 5 detik
-    const timer = setTimeout(() => setShowCursor(false), 5000);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setActiveBtn(prev => prev === 'mobil'? 'rumah' : 'mobil');
+    }, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -119,18 +123,28 @@ export default function HomePage() {
         <div className="mt-8 flex gap-4 justify-center relative">
           {/* BUTTON CARI MOBIL */}
           <div className="relative">
-            <Link href="/mobil" className="px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 animate-pulse">
+            <Link
+              href="/mobil"
+              className={`px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 duration-300 ${
+                activeBtn === 'mobil'? 'scale-95' : 'scale-100'
+              }`}
+            >
               Cari Mobil
             </Link>
-            {showCursor && <CursorPointer />}
+            {activeBtn === 'mobil' && <CursorPointer />}
           </div>
 
           {/* BUTTON CARI RUMAH */}
           <div className="relative">
-            <Link href="/rumah" className="px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition animate-pulse [animation-delay:0.3s]">
+            <Link
+              href="/rumah"
+              className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition duration-300 ${
+                activeBtn === 'rumah'? 'scale-95' : 'scale-100'
+              }`}
+            >
               Cari Rumah
             </Link>
-            {showCursor && <CursorPointer />}
+            {activeBtn === 'rumah' && <CursorPointer />}
           </div>
         </div>
       </section>
@@ -146,7 +160,7 @@ export default function HomePage() {
             mobil.map(m => {
               const images = [m.foto_url_1, m.foto_url_2, m.foto_url_3, m.foto_url_4, m.foto_url_5].filter(Boolean);
               return (
-                <div key={m.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
+                <div key={m.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
                   <ImageSlider images={images} />
                   <div className="p-4">
                     <h3 className="font-bold text-lg text-white">{m.merk} {m.tipe} {m.tahun}</h3>
@@ -174,7 +188,7 @@ export default function HomePage() {
             rumah.map(r => {
               const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
               return (
-                <div key={r.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
+                <div key={r.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
                   <ImageSlider images={images} />
                   <div className="p-4">
                     <h3 className="font-bold text-lg text-white">{r.nama_rumah}</h3>
