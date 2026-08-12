@@ -1,15 +1,13 @@
 "use client"
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const API_URL = "https://otopadang-api.up.railway.app";
 
-// COMPONENT SLIDER YANG SAMA BIAR KONSISTEN
 function ImageSlider({ images }) {
   const [current, setCurrent] = useState(0);
-  const prev = () => setCurrent(current === 0? images.length - 1 : current - 1);
-  const next = () => setCurrent(current === images.length - 1? 0 : current + 1);
+  const prev = (e) => { e.stopPropagation(); setCurrent(current === 0? images.length - 1 : current - 1); };
+  const next = (e) => { e.stopPropagation(); setCurrent(current === images.length - 1? 0 : current + 1); };
 
   return (
     <div className="relative overflow-hidden">
@@ -20,10 +18,10 @@ function ImageSlider({ images }) {
       />
       {images.length > 1 && (
         <>
-          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80">‹</button>
-          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80">›</button>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">‹</button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">›</button>
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full ${i === current? 'bg-yellow-400' : 'bg-white/50'}`}></div>)}
+            {images.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === current? 'bg-yellow-400' : 'bg-white/50'}`}></div>)}
           </div>
         </>
       )}
@@ -35,7 +33,6 @@ export default function RumahPage() {
   const [rumahList, setRumahList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [visibleCards, setVisibleCards] = useState(0); // buat animasi stagger
 
   useEffect(() => {
     const getData = async () => {
@@ -45,15 +42,8 @@ export default function RumahPage() {
         const res = await fetch(`${API_URL}/rumah/`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Gagal ambil data Rumah');
         const result = await res.json();
-
         const data = Array.isArray(result)? result : result.data || [];
         setRumahList(data);
-
-        // Trigger animasi stagger setelah data masuk
-        data.forEach((_, i) => {
-          setTimeout(() => setVisibleCards(i + 1), i * 100) // muncul tiap 100ms
-        })
-
       } catch (err) {
         setError(err.message);
         console.error(err);
@@ -74,8 +64,7 @@ export default function RumahPage() {
   return (
     <main className="min-h-screen bg-[#0B0B0F] container mx-auto max-w-7xl px-4 py-16">
 
-      {/* JUDUL BARU + SUBTEXT */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-12 animate-fade-in-down">
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
           Temukan Rumah Impianmu
         </h1>
@@ -87,22 +76,19 @@ export default function RumahPage() {
       {loading && <p className="text-gray-400 text-center">Loading...</p>}
       {error && <p className="text-red-500 text-center">Error: {error}</p>}
 
-      {!loading && rumahList.length === 0 && (
-        <p className="text-gray-400 text-center">Belum ada data rumah</p>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {rumahList.map((r, i) => {
           const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
           return (
             <div
               key={r.id}
-              className={`bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800
-                hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20
-                hover:-translate-y-2 hover:scale-[1.02]
+              style={{ animationDelay: `${i * 100}ms` }} // DELAY STAGGER
+              className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800
+                hover:border-yellow-400 active:border-yellow-400
+                hover:shadow-2xl hover:shadow-yellow-500/20 active:shadow-yellow-500/20
+                hover:-translate-y-2 active:-translate-y-2 hover:scale-[1.02] active:scale-[1.02]
                 transition-all duration-500 group
-                ${i < visibleCards? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`
-              }
+                animate-fade-in-up" // ANIMASI UTAMA
             >
               <ImageSlider images={images} />
               <div className="p-4">
@@ -113,7 +99,7 @@ export default function RumahPage() {
                 {r.badge_bonus && <span className="inline-block mt-2 text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">{r.badge_bonus}</span>}
                 <button
                   onClick={() => pesanWA(r)}
-                  className="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition">
+                  className="w-full mt-4 bg-green-600 hover:bg-green-500 active:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition active:scale-95">
                   Hubungi Penjual via WA
                 </button>
               </div>
@@ -121,6 +107,20 @@ export default function RumahPage() {
           )
         })}
       </div>
+
+      {/* TAMBAH CSS KEYFRAME BIAR GAK KENA PURGE */}
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+       .animate-fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+       .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
+      `}</style>
     </main>
   )
 }
