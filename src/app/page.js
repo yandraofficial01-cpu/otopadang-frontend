@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const API_URL = "https://otopadang-api.up.railway.app";
 
-// COMPONENT SLIDER + ZOOM
+// COMPONENT SLIDER + ZOOM - UDAH FIX ASPECT RATIO
 function ImageSlider({ images }) {
   const [current, setCurrent] = useState(0);
   const [zoomImg, setZoomImg] = useState(null);
@@ -15,17 +15,17 @@ function ImageSlider({ images }) {
   const next = (e) => { e.stopPropagation(); setCurrent(current === images.length - 1? 0 : current + 1); };
 
   return (
-    <div className="relative">
+    <div className="relative aspect-[16/9] bg-[#0B0B0F] rounded-t-2xl overflow-hidden"> {/* FIX DISINI */}
       <img
         src={images[current] || 'https://placehold.co/600x400'}
         alt=""
-        className="w-full h-48 object-cover cursor-zoom-in group-hover:scale-110 transition duration-500"
+        className="w-full h-full object-cover cursor-zoom-in group-hover:scale-110 transition duration-500" {/* h-full */}
         onClick={() => setZoomImg(images[current])}
       />
       {images.length > 1 && (
         <>
-          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">‹</button>
-          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">›</button>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/80 active:scale-90">‹</button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/80 active:scale-90">›</button>
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
             {images.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === current? 'bg-yellow-400' : 'bg-white/50'}`}></div>)}
           </div>
@@ -81,7 +81,7 @@ export default function HomePage() {
         ]);
         const dataMobil = await resMobil.json();
         const dataRumah = await resRumah.json();
-        setMobil(dataMobil.slice(0, 8)); // Ambil 8 biar bisa di swipe
+        setMobil(dataMobil.slice(0, 8));
         setRumah(dataRumah.slice(0, 8));
       } catch (err) {
         setError(err.message);
@@ -161,14 +161,14 @@ export default function HomePage() {
         <div className="relative">
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0B0B0F] to-transparent pointer-events-none z-10"></div>
           <motion.div className="flex gap-6 pb-4 overflow-x-auto scrollbar-hide" drag="x" dragConstraints={{ left: -2000, right: 0 }}>
-            {loading? Array.from({length:4}).map((_,i)=><div key={i} className="w-[300px] h-[350px] bg-[#1A1A1F] rounded-2xl animate-pulse flex-shrink-0"></div>) :
+            {loading? Array.from({length:4}).map((_,i)=><div key={i} className="w-[300px] aspect-[3/4] bg-[#1A1A1F] rounded-2xl animate-pulse flex-shrink-0"></div>) :
               mobil.map((m, i) => {
                 const images = [m.foto_url_1, m.foto_url_2, m.foto_url_3, m.foto_url_4, m.foto_url_5].filter(Boolean);
                 return (
                   <motion.div
                     key={m.id}
                     initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: i * 0.1 }} viewport={{ once: true }}
-                    className="w-[300px] flex-shrink-0 bg-[#1A1A1F] rounded-2xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] hover:-translate-y-2 transition-all duration-500 group"
+                    className="w-[300px] flex-shrink-0 bg-[#1A1A1F] rounded-2xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] hover:-translate-y-2 transition-all duration-500 group"
                   >
                     <ImageSlider images={images} />
                     <div className="p-4">
@@ -195,7 +195,7 @@ export default function HomePage() {
         <div className="relative">
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0B0B0F] to-transparent pointer-events-none z-10"></div>
           <motion.div className="flex gap-6 pb-4 overflow-x-auto scrollbar-hide" drag="x" dragConstraints={{ left: -2000, right: 0 }}>
-            {loading? Array.from({length:4}).map((_,i)=><div key={i} className="w-[300px] h-[350px] bg-[#1A1A1F] rounded-2xl animate-pulse flex-shrink-0"></div>) :
+            {loading? Array.from({length:4}).map((_,i)=><div key={i} className="w-[300px] aspect-[3/4] bg-[#1A1A1F] rounded-2xl animate-pulse flex-shrink-0"></div>) :
               rumah.map((r, i) => {
                 const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
                 return (
