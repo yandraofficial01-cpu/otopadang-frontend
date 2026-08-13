@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 
 const CLOUD_NAME = "jh0ct5rz"
 const UPLOAD_PRESET = "otopadang_preset"
-const API = "https://g-api.up.railway.app"
+const API = "https://otopadang-api.up.railway.app" // FIX: URL BE yg bener
 
 export default function InputMobilPage() {
   const [loading, setLoading] = useState(false)
@@ -12,7 +12,7 @@ export default function InputMobilPage() {
   const [form, setForm] = useState({
     nama_mobil: "", merek: "", tipe: "", tahun: "", kilometer: "",
     transmisi: "Manual", bahan_bakar: "Bensin",
-    harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "", // <-- FIX: dp jadi angsuran
+    harga: "", harga_kredit: "", dp: "", lama_angsuran: "", // FIX: angsuran -> dp
     lokasi: "", deskripsi: "", no_wa_showroom: "",
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
@@ -45,11 +45,11 @@ export default function InputMobilPage() {
     if(!token) return alert("Lu belum login bro")
 
     const payload = {
-     ...form,
+    ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
-      angsuran: Number(form.angsuran) || 0, // <-- FIX: dp jadi angsuran
+      dp: Number(form.dp) || 0, // FIX: angsuran -> dp
       kilometer: Number(form.kilometer) || 0,
       lama_angsuran: Number(form.lama_angsuran) || 0,
     }
@@ -76,8 +76,8 @@ export default function InputMobilPage() {
   }
 
   return (
-    <div className="p-6 bg-black text-white min-h-screen"> {/* <-- FIX: text kuning jadi putih */}
-      <h1 className="text-2xl font-bold mb-4 text-yellow-400">Input Mobil Baru</h1> {/* judul tetap kuning */}
+    <div className="p-6 bg-black text-white min-h-screen">
+      <h1 className="text-2xl font-bold mb-4 text-yellow-400">Input Mobil Baru</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-2xl">
 
         <input name="nama_mobil" placeholder="Nama Mobil: Avanza G 2022" value={form.nama_mobil} onChange={e=>setForm({...form, nama_mobil: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
@@ -90,7 +90,7 @@ export default function InputMobilPage() {
         <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Bensin</option><option>Solar</option></select>
 
         <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
-        <input name="angsuran" type="number" placeholder="Angsuran/Bulan" value={form.angsuran} onChange={e=>setForm({...form, angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/> {/* <-- FIX: dp jadi angsuran */}
+        <input name="dp" type="number" placeholder="DP/Angsuran/Bulan" value={form.dp} onChange={e=>setForm({...form, dp: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/> {/* FIX: name=dp */}
         <input name="harga_kredit" type="number" placeholder="Harga Kredit" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
         <input name="lama_angsuran" type="number" placeholder="Tenor Bulan" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
@@ -102,14 +102,14 @@ export default function InputMobilPage() {
         <div className="grid grid-cols-2 gap-3">
           {[1,2,3,4,5,6,7,8].map(i => (
             <div key={i} className="bg-[#1a1a1a] p-2 rounded border border-gray-700">
-              <p className="text-xs mb-1 text-gray-300">Foto {i} {i==1 && '(Cover)'}</p> {/* <-- FIX: ga kuning */}
+              <p className="text-xs mb-1 text-gray-300">Foto {i} {i==1 && '(Cover)'}</p>
               {form[`foto_url_${i}`]? (
                 <div>
                   <img src={form[`foto_url_${i}`]} className="w-full h-24 object-cover rounded mb-1"/>
                   <button type="button" onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="w-full text-[10px] bg-red-500 px-2 py-1 rounded text-white">Hapus</button>
                 </div>
               ) : (
-                <label className="w-full h-24 border-2 border-dashed flex items-center justify-center cursor-pointer rounded text-gray-400"> {/* <-- FIX: ga kuning */}
+                <label className="w-full h-24 border-2 border-dashed flex items-center justify-center cursor-pointer rounded text-gray-400">
                   <span>{uploading[i]? "⏳" : "📸"}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e=> e.target.files[0] && uploadToCloudinary(e.target.files[0], i)} />
                 </label>
