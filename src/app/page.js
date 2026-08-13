@@ -45,13 +45,11 @@ function ImageSlider({ images }) {
 function CursorPointer() {
   return (
     <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
-      {/* Kursor */}
       <div className="animate-bounce">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg">
           <path d="M12 2L3 20L12 17L21 20L12 2Z" fill="currentColor" stroke="black" strokeWidth="1.5"/>
         </svg>
       </div>
-      {/* Lingkaran ping */}
       <div className="absolute top-1 left-1 w-7 h-7 border-2 border-yellow-400 rounded-full animate-ping"></div>
     </div>
   )
@@ -62,9 +60,8 @@ export default function HomePage() {
   const [rumah, setRumah] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeBtn, setActiveBtn] = useState('mobil'); // 'mobil' atau 'rumah'
+  const [activeBtn, setActiveBtn] = useState('mobil');
 
-  // Animasi gantian tiap 2 detik, gak berhenti
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveBtn(prev => prev === 'mobil'? 'rumah' : 'mobil');
@@ -77,14 +74,18 @@ export default function HomePage() {
       setLoading(true);
       setError(null);
       try {
-        const resMobil = await fetch(`${API_URL}/mobil/`, { cache: 'no-store' });
-        if (!resMobil.ok) throw new Error('Gagal ambil data Mobil');
-        const dataMobil = await resMobil.json();
-        setMobil(dataMobil.slice(0, 4));
+        const [resMobil, resRumah] = await Promise.all([
+          fetch(`${API_URL}/mobil/`, { cache: 'no-store' }),
+          fetch(`${API_URL}/rumah/`, { cache: 'no-store' })
+        ]);
 
-        const resRumah = await fetch(`${API_URL}/rumah/`, { cache: 'no-store' });
+        if (!resMobil.ok) throw new Error('Gagal ambil data Mobil');
         if (!resRumah.ok) throw new Error('Gagal ambil data Rumah');
+
+        const dataMobil = await resMobil.json();
         const dataRumah = await resRumah.json();
+
+        setMobil(dataMobil.slice(0, 4));
         setRumah(dataRumah.slice(0, 4));
 
       } catch (err) {
@@ -98,7 +99,7 @@ export default function HomePage() {
 
   const pesanWA = (item, tipe) => {
     const noWa = item.wa_number || "62812PUSAT";
-    const nama = tipe === 'rumah'? item.nama_rumah : `${item.merk} ${item.tipe}`;
+    const nama = tipe === 'rumah'? item.nama_rumah : item.nama_mobil || `${item.merek} ${item.tipe}`; // FIX DISINI
     const text = `Halo Otopadang, saya tertarik dengan ${nama} seharga Rp ${item.harga?.toLocaleString('id-ID')}. Apakah masih tersedia?`;
     window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(text)}`, '_blank');
   }
@@ -111,37 +112,21 @@ export default function HomePage() {
           <span className="text-white">Selamat Datang di </span>
           <span className="text-yellow-400">Portal no 1 Urang Padang</span>
         </h1>
-
         <h2 className="text-2xl md:text-4xl font-semibold text-white mb-6">
           Temukan Mobil & Rumah Impian Anda Disini
         </h2>
-
         <p className="text-gray-400 mt-4 text-lg max-w-2xl mx-auto">
-          Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang, siapa tau impian Anda ada disini.
+          Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang.
         </p>
-
         <div className="mt-8 flex gap-4 justify-center relative">
-          {/* BUTTON CARI MOBIL */}
           <div className="relative">
-            <Link
-              href="/mobil"
-              className={`px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 duration-300 ${
-                activeBtn === 'mobil'? 'scale-95' : 'scale-100'
-              }`}
-            >
+            <Link href="/mobil" className={`px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 duration-300 ${activeBtn === 'mobil'? 'scale-95' : 'scale-100'}`}>
               Cari Mobil
             </Link>
             {activeBtn === 'mobil' && <CursorPointer />}
           </div>
-
-          {/* BUTTON CARI RUMAH */}
           <div className="relative">
-            <Link
-              href="/rumah"
-              className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition duration-300 ${
-                activeBtn === 'rumah'? 'scale-95' : 'scale-100'
-              }`}
-            >
+            <Link href="/rumah" className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition duration-300 ${activeBtn === 'rumah'? 'scale-95' : 'scale-100'}`}>
               Cari Rumah
             </Link>
             {activeBtn === 'rumah' && <CursorPointer />}
@@ -160,15 +145,13 @@ export default function HomePage() {
             mobil.map(m => {
               const images = [m.foto_url_1, m.foto_url_2, m.foto_url_3, m.foto_url_4, m.foto_url_5].filter(Boolean);
               return (
-                <div key={m.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
+                <div key={m.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
                   <ImageSlider images={images} />
                   <div className="p-4">
-                    <h3 className="font-bold text-lg text-white">{m.merk} {m.tipe} {m.tahun}</h3>
-                    <p className="text-gray-400 text-sm">{m.lokasi || m.alamat}</p>
+                    <h3 className="font-bold text-lg text-white">{m.nama_mobil || `${m.merek} ${m.tipe}`} {m.tahun}</h3>
+                    <p className="text-gray-400 text-sm">{m.lokasi}</p>
                     <p className="text-yellow-400 font-bold text-xl mt-2">Rp {m.harga?.toLocaleString('id-ID')}</p>
-                    <button
-                      onClick={() => pesanWA(m, 'mobil')}
-                      className="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition">
+                    <button onClick={() => pesanWA(m, 'mobil')} className="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition">
                       Hubungi via WA
                     </button>
                   </div>
@@ -188,7 +171,7 @@ export default function HomePage() {
             rumah.map(r => {
               const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
               return (
-                <div key={r.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group">
+                <div key={r.id} className="bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-500/10 transition-all duration-300 group"> {/* FIX border */}
                   <ImageSlider images={images} />
                   <div className="p-4">
                     <h3 className="font-bold text-lg text-white">{r.nama_rumah}</h3>
@@ -196,9 +179,7 @@ export default function HomePage() {
                     <p className="text-yellow-400 font-bold text-xl mt-2">Rp {r.harga?.toLocaleString('id-ID')}</p>
                     <p className="text-gray-400 text-sm mt-1">{r.luas_bangunan}m² | {r.tipe} | Tanah: {r.luas_tanah}m²</p>
                     {r.badge_bonus && <span className="inline-block mt-2 text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">{r.badge_bonus}</span>}
-                    <button
-                      onClick={() => pesanWA(r, 'rumah')}
-                      className="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition">
+                    <button onClick={() => pesanWA(r, 'rumah')} className="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition">
                       Hubungi Penjual via WA
                     </button>
                   </div>
