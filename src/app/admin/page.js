@@ -1,6 +1,11 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import {
+  ShieldCheck, Car, Home, FileText, Building2,
+  LogOut, Check, X, Flame, Crown, Trash2, DollarSign,
+  Loader2, RefreshCw, AlertTriangle
+} from 'lucide-react'
 
 const API_URL = 'https://otopadang-api.up.railway.app'
 
@@ -36,7 +41,6 @@ export default function AdminPage() {
   const fetchData = useCallback(async (t) => {
     setLoading(true)
     setError('')
-    // Safety: paksa berhenti loading setelah 4 detik apapun yang terjadi
     const safetyTimer = setTimeout(() => setLoading(false), 4000)
 
     try {
@@ -82,11 +86,27 @@ export default function AdminPage() {
     fetchData(t)
   }, [fetchData])
 
+  // ACTION MOBIL
   const handleApproveMobil = async (id) => {
     if(!confirm('Approve mobil ini?')) return
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/approve`, {
+      method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if(res.ok) fetchData(token); else alert(await res.text())
+  }
+
+  const handleSoldMobil = async (id) => {
+    if(!confirm('Tandai mobil ini SOLD?')) return
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/sold`, {
+      method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if(res.ok) fetchData(token); else alert(await res.text())
+  }
+
+  const handleDeleteMobil = async (id) => {
+    if(!confirm('HAPUS PERMANEN? Data tidak bisa dikembalikan!')) return
     const res = await fetch(`${API_URL}/admin/mobil/${id}`, {
-      method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: "approved" })
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
     })
     if(res.ok) fetchData(token); else alert(await res.text())
   }
@@ -107,77 +127,129 @@ export default function AdminPage() {
     if(res.ok) fetchData(token); else alert(await res.text())
   }
 
-  // FIX LOGOUT - pakai window.location.href bukan router.replace
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('token')
-    localStorage.removeItem('token_admin')
-    localStorage.removeItem('role')
     localStorage.clear()
     document.cookie = "token=; path=/; max-age=0"
-    document.cookie = "access_token=; path=/; max-age=0"
-    document.cookie = "token_admin=; path=/; max-age=0"
-    document.cookie = "role=; path=/; max-age=0"
     window.location.href = '/login-admin'
   }
 
   if(loading) return (
-    <div className="p-10 text-center text-white bg-[#0B0B0F] min-h-screen flex flex-col items-center justify-center gap-4">
-      <p className="animate-pulse">Loading data admin...</p>
-      <p className="text-xs text-gray-500">Menghubungi Railway... (max 4 detik)</p>
-      <button onClick={handleLogout} className="mt-4 bg-red-600 px-6 py-3 rounded-xl font-bold">Force Logout</button>
+    <div className="bg-[#0B0B0F] min-h-screen flex-col items-center justify-center gap-4 text-white">
+      <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
+      <p className="animate-pulse font-semibold">Loading Panel Admin...</p>
+      <p className="text-xs text-gray-500">Menghubungi Railway... max 4 detik</p>
+      <button onClick={handleLogout} className="mt-4 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2"><LogOut size={18}/> Force Logout</button>
     </div>
   )
 
   const mobilPending = allMobil.filter(m => m.status === 'pending')
+  const mobilApproved = allMobil.filter(m => m.status === 'approved')
+
+  const StatusBadge = ({status}) => {
+    const colors = {
+      pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+      approved: 'bg-green-500/20 text-green-400 border-green-500/30',
+      sold: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      rejected: 'bg-red-500/20 text-red-400 border-red-500/30',
+    }
+    return <span className={`px-2 py-1 text-xs font-bold rounded-full border ${colors[status] || colors.pending}`}>{status.toUpperCase()}</span>
+  }
 
   return (
-    <div className="p-6 md:p-10 bg-[#0B0B0F] min-h-screen text-white">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-yellow-400">Panel Admin OTO PADANG</h1>
-        <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-semibold transition">Logout</button>
+    <div className="p-6 md:p-10 bg-[#0B0B0F] min-h-screen text-white font-sans">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
+        <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
+          <ShieldCheck size={32} className="text-yellow-400"/> Panel Admin OTO PADANG
+        </h1>
+        <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 border-red-500/30 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
+          <LogOut size={18}/> Logout
+        </button>
       </div>
 
-      {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 break-all">{error} <button onClick={()=>window.location.reload()} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs">Refresh</button></div>}
+      {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>window.location.reload()} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
 
+      {/* STATS CARD */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#1a1a20] border border-gray-800 p-4 rounded-xl"><p className="text-gray-400 text-sm">Total Mobil</p><p className="text-2xl font-bold">{allMobil.length}</p><p className="text-xs text-green-400">{mobilPending.length} pending</p></div>
-        <div className="bg-[#1a1a20] border border-gray-800 p-4 rounded-xl"><p className="text-gray-400 text-sm">Total Showroom</p><p className="text-2xl font-bold">{showrooms.length}</p></div>
-        <div className="bg-[#1a1a20] border border-gray-800 p-4 rounded-xl"><p className="text-gray-400 text-sm">Total Rumah</p><p className="text-2xl font-bold">{allRumah.length}</p></div>
-        <div className="bg-[#1a1a20] border border-gray-800 p-4 rounded-xl"><p className="text-gray-400 text-sm">Total Blog</p><p className="text-2xl font-bold">{allBlog.length}</p></div>
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
+          <p className="text-gray-400 text-sm flex items-center gap-2"><Car size={16}/> Total Mobil</p>
+          <p className="text-3xl font-bold mt-2">{allMobil.length}</p>
+          <p className="text-xs text-yellow-400 mt-1">{mobilPending.length} pending</p>
+        </div>
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
+          <p className="text-gray-400 text-sm flex items-center gap-2"><Building2 size={16}/> Showroom</p>
+          <p className="text-3xl font-bold mt-2">{showrooms.length}</p>
+        </div>
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
+          <p className="text-gray-400 text-sm flex items-center gap-2"><Home size={16}/> Rumah</p>
+          <p className="text-3xl font-bold mt-2">{allRumah.length}</p>
+        </div>
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
+          <p className="text-gray-400 text-sm flex items-center gap-2"><FileText size={16}/> Blog</p>
+          <p className="text-3xl font-bold mt-2">{allBlog.length}</p>
+        </div>
       </div>
 
-      <div className="mb-8 p-6 border border-green-500 rounded-xl bg-green-900/10">
-        <h2 className="text-xl font-bold mb-4 text-green-400">🔥 Tugas Utama: Review Mobil Baru ({mobilPending.length})</h2>
+      {/* TUGAS UTAMA: MOBIL PENDING */}
+      <div className="mb-8 p-6 border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent">
+        <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><Flame size={20}/> Review Mobil Baru ({mobilPending.length})</h2>
         {mobilPending.length === 0? <p className="text-gray-500">Tidak ada mobil baru - Total di DB: {allMobil.length}</p> :
           mobilPending.slice(0, 10).map(m => (
-            <div key={m.id} className="border border-gray-800 p-4 rounded-lg mb-3 flex justify-between items-center bg-[#1a1a20]">
-              <div><p className="font-bold">{m.merek || m.brand} {m.tipe} {m.tahun}</p><p className="text-sm text-gray-400">ID: {m.id} | Rp{(m.harga_tunai || m.price || 0).toLocaleString('id-ID')}</p></div>
-              <button onClick={() => handleApproveMobil(m.id)} className="bg-green-600 px-4 py-2 rounded font-bold">Approve</button>
+            <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50 hover:bg-[#1a1a20] transition">
+              <div>
+                <p className="font-bold text-lg">{m.merek} {m.nama_mobil} {m.tahun}</p>
+                <p className="text-sm text-gray-400">ID: {m.id} | Rp{(m.harga || 0).toLocaleString('id-ID')}</p>
+              </div>
+              <div className="flex gap-2 mt-3 md:mt-0">
+                <button onClick={() => handleApproveMobil(m.id)} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Check size={16}/> Approve</button>
+                <button onClick={() => handleDeleteMobil(m.id)} className="bg-red-600/50 hover:bg-red-600 px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Trash2 size={16}/> Delete</button>
+              </div>
             </div>
           ))
         }
       </div>
 
-      <div className="mb-8 p-6 border border-yellow-500 rounded-xl bg-yellow-900/10">
-        <h2 className="text-xl font-bold mb-4 text-yellow-400">👑 Manajemen Showroom ({showrooms.length})</h2>
+      {/* MOBIL APPROVED / SOLD */}
+      <div className="mb-8 p-6 border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent">
+        <h2 className="text-xl font-bold mb-4 text-green-400 flex items-center gap-2"><Check size={20}/> Mobil Aktif ({mobilApproved.length})</h2>
+        {mobilApproved.slice(0, 5).map(m => (
+          <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
+            <div>
+              <p className="font-bold">{m.merek} {m.nama_mobil}</p>
+              <div className="flex items-center gap-2 mt-1"><StatusBadge status={m.status}/></div>
+            </div>
+            <button onClick={() => handleSoldMobil(m.id)} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 mt-3 md:mt-0"><DollarSign size={16}/> Tandai SOLD</button>
+          </div>
+        ))}
+      </div>
+
+      {/* MANAJEMEN SHOWROOM */}
+      <div className="mb-8 p-6 border border-purple-500/30 rounded-2xl bg-gradient-to-br from-purple-900/10 to-transparent">
+        <h2 className="text-xl font-bold mb-4 text-purple-400 flex items-center gap-2"><Crown size={20}/> Manajemen Showroom ({showrooms.length})</h2>
         {showrooms.map(s => (
-          <div key={s.id} className="border border-gray-800 p-4 rounded-lg mb-3 flex justify-between items-center bg-[#1a1a20]">
-            <div><p className="font-bold">{s.nama_showroom} {s.paket === 'Premium' && <span className="ml-2 bg-red-500 text-xs px-2 py-1 rounded">HOT</span>}</p><p className="text-sm text-gray-400">Status: {s.status} | Paket: {s.paket} | WA: {s.wa_number}</p></div>
-            <div className="flex gap-2">
-              {s.status === 'pending' && <button onClick={() => handleApproveShowroom(s.id)} className="bg-yellow-500 text-black px-3 py-2 rounded font-bold text-sm">Approve</button>}
-              {s.paket!== 'Premium' && <button onClick={() => handleSetPremium(s.id)} className="bg-white text-black px-3 py-2 rounded font-bold text-sm">Premium</button>}
+          <div key={s.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
+            <div>
+              <p className="font-bold flex items-center gap-2">
+                {s.nama_showroom}
+                {s.paket === 'Premium' && <span className="bg-gradient-to-r from-red-500 to-yellow-500 text-xs px-2 py-1 rounded-full font-bold">PREMIUM</span>}
+              </p>
+              <p className="text-sm text-gray-400">Status: {s.status} | WA: {s.wa_number}</p>
+            </div>
+            <div className="flex gap-2 mt-3 md:mt-0">
+              {s.status === 'pending' && <button onClick={() => handleApproveShowroom(s.id)} className="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-1"><Check size={14}/> Approve</button>}
+              {s.paket!== 'Premium' && <button onClick={() => handleSetPremium(s.id)} className="bg-white hover:bg-gray-200 text-black px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-1"><Crown size={14}/> Premium</button>}
             </div>
           </div>
         ))}
       </div>
 
+      {/* MENU LAINNYA */}
       <h2 className="text-xl font-bold mb-4">Menu Lainnya</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center"><h2 className="font-bold">Upload Rumah</h2></Link>
-        <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center"><h2 className="font-bold">Kelola Blog ({allBlog.length})</h2></Link>
-        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center"><h2 className="font-bold">Daftar Showroom</h2></Link>
-        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-lg hover:bg-yellow-500 hover:text-black transition text-center"><h2 className="font-bold">Approve Showroom</h2></Link>
+        <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
+        <Link href="/admin/blog" className="p-4 border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
+        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
+        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
       </div>
     </div>
   )
