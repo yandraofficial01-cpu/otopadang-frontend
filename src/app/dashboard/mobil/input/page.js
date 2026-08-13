@@ -12,7 +12,7 @@ export default function InputMobilPage() {
   const [form, setForm] = useState({
     nama_mobil: "", merek: "", tipe: "", tahun: "", kilometer: "",
     transmisi: "Manual", bahan_bakar: "Bensin",
-    harga: "", harga_kredit: "", dp: "", lama_angsuran: "",
+    harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "", // <-- FIX: dp jadi angsuran
     lokasi: "", deskripsi: "", no_wa_showroom: "",
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
@@ -31,7 +31,7 @@ export default function InputMobilPage() {
       const data = await res.json()
       if(data.secure_url){
         setForm(prev => ({...prev, [`foto_url_${index}`]: data.secure_url}))
-      } else { alert("Gagal Upload Foto: " + JSON.stringify(data)) } // FIX 1: kasih tau error cloudinary
+      } else { alert("Gagal Upload Foto: " + JSON.stringify(data)) }
     } catch(e){ alert("Error Cloudinary: " + e.message) }
     setUploading(prev => ({...prev, [index]: false}))
   }
@@ -42,14 +42,14 @@ export default function InputMobilPage() {
 
     setLoading(true)
     const token = localStorage.getItem('token')
-    if(!token) return alert("Lu belum login bro") // FIX 2: cek token dulu
+    if(!token) return alert("Lu belum login bro")
 
     const payload = {
-    ...form,
+     ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
-      dp: Number(form.dp) || 0,
+      angsuran: Number(form.angsuran) || 0, // <-- FIX: dp jadi angsuran
       kilometer: Number(form.kilometer) || 0,
       lama_angsuran: Number(form.lama_angsuran) || 0,
     }
@@ -64,52 +64,52 @@ export default function InputMobilPage() {
         body: JSON.stringify(payload)
       })
 
-      const data = await res.json().catch(()=>({})) // FIX 3: biar ga crash kalau BE balikin kosong
+      const data = await res.json().catch(()=>({}))
       if(!res.ok) {
         alert("Gagal [" + res.status + "]: " + (data.detail || "Cek login / BE down"))
       } else {
         alert("Mobil berhasil diinput, menunggu approval admin")
         router.push('/dashboard/mobil/list')
       }
-    } catch(err) { alert("Error: Failed to fetch. Cek CORS BE") } // ini yg muncul di SS lu
+    } catch(err) { alert("Error: Failed to fetch. Cek CORS BE") }
     setLoading(false)
   }
 
   return (
-    <div className="p-6 bg-black text-yellow-400 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Input Mobil Baru</h1>
+    <div className="p-6 bg-black text-white min-h-screen"> {/* <-- FIX: text kuning jadi putih */}
+      <h1 className="text-2xl font-bold mb-4 text-yellow-400">Input Mobil Baru</h1> {/* judul tetap kuning */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-2xl">
 
-        <input name="nama_mobil" placeholder="Nama Mobil: Avanza G 2022" value={form.nama_mobil} onChange={e=>setForm({...form, nama_mobil: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="merek" placeholder="Merek: Toyota" value={form.merek} onChange={e=>setForm({...form, merek: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="tipe" placeholder="Tipe: G ATPM" value={form.tipe} onChange={e=>setForm({...form, tipe: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={e=>setForm({...form, tahun: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="kilometer" type="number" placeholder="KM" value={form.kilometer} onChange={e=>setForm({...form, kilometer: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
+        <input name="nama_mobil" placeholder="Nama Mobil: Avanza G 2022" value={form.nama_mobil} onChange={e=>setForm({...form, nama_mobil: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="merek" placeholder="Merek: Toyota" value={form.merek} onChange={e=>setForm({...form, merek: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="tipe" placeholder="Tipe: G ATPM" value={form.tipe} onChange={e=>setForm({...form, tipe: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={e=>setForm({...form, tahun: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="kilometer" type="number" placeholder="KM" value={form.kilometer} onChange={e=>setForm({...form, kilometer: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
-        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a] border-gray-700 rounded"><option>Manual</option><option>Automatic</option></select>
-        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"><option>Bensin</option><option>Solar</option></select>
+        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Manual</option><option>Automatic</option></select>
+        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Bensin</option><option>Solar</option></select>
 
-        <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="dp" type="number" placeholder="DP" value={form.dp} onChange={e=>setForm({...form, dp: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="harga_kredit" type="number" placeholder="Harga Kredit" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="lama_angsuran" type="number" placeholder="Tenor Bulan" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
+        <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="angsuran" type="number" placeholder="Angsuran/Bulan" value={form.angsuran} onChange={e=>setForm({...form, angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/> {/* <-- FIX: dp jadi angsuran */}
+        <input name="harga_kredit" type="number" placeholder="Harga Kredit" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="lama_angsuran" type="number" placeholder="Tenor Bulan" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
-        <input name="lokasi" placeholder="Lokasi: Padang" value={form.lokasi} onChange={e=>setForm({...form, lokasi: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <textarea name="deskripsi" placeholder="Deskripsi" value={form.deskripsi} onChange={e=>setForm({...form, deskripsi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
-        <input name="no_wa_showroom" placeholder="No WA Showroom" value={form.no_wa_showroom} onChange={e=>setForm({...form, no_wa_showroom: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
+        <input name="lokasi" placeholder="Lokasi: Padang" value={form.lokasi} onChange={e=>setForm({...form, lokasi: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <textarea name="deskripsi" placeholder="Deskripsi" value={form.deskripsi} onChange={e=>setForm({...form, deskripsi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+        <input name="no_wa_showroom" placeholder="No WA Showroom" value={form.no_wa_showroom} onChange={e=>setForm({...form, no_wa_showroom: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
         <label className="font-bold mt-4 text-yellow-400">Upload 8 Foto</label>
         <div className="grid grid-cols-2 gap-3">
           {[1,2,3,4,5,6,7,8].map(i => (
             <div key={i} className="bg-[#1a1a1a] p-2 rounded border border-gray-700">
-              <p className="text-xs mb-1">Foto {i} {i==1 && '(Cover)'}</p>
+              <p className="text-xs mb-1 text-gray-300">Foto {i} {i==1 && '(Cover)'}</p> {/* <-- FIX: ga kuning */}
               {form[`foto_url_${i}`]? (
                 <div>
                   <img src={form[`foto_url_${i}`]} className="w-full h-24 object-cover rounded mb-1"/>
-                  <button type="button" onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="w-full text-[10px] bg-red-500 px-2 py-1 rounded">Hapus</button>
+                  <button type="button" onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="w-full text-[10px] bg-red-500 px-2 py-1 rounded text-white">Hapus</button>
                 </div>
               ) : (
-                <label className="w-full h-24 border-2 border-dashed flex items-center justify-center cursor-pointer rounded">
+                <label className="w-full h-24 border-2 border-dashed flex items-center justify-center cursor-pointer rounded text-gray-400"> {/* <-- FIX: ga kuning */}
                   <span>{uploading[i]? "⏳" : "📸"}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e=> e.target.files[0] && uploadToCloudinary(e.target.files[0], i)} />
                 </label>
