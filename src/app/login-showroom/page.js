@@ -23,13 +23,16 @@ export default function LoginShowroomPage() {
       const data = await res.json()
 
       if(res.ok){
-        localStorage.setItem('token', data.access_token)
-        localStorage.setItem('role', data.role)
-        localStorage.setItem('showroom_id', data.showroom_id)
-        localStorage.setItem('nama_showroom', data.nama_showroom)
-        localStorage.setItem('email', data.email)
+        const user = data.user // <-- INI KUNCINYA
+        
+        console.log("DATA USER:", user) // buat debug
 
-        if(data.role !== 'showroom'){
+        localStorage.setItem('token', data.access_token)
+        localStorage.setItem('role', user.role)
+        localStorage.setItem('showroom_id', user.showroom_id)
+        localStorage.setItem('email', user.email)
+
+        if(user.role !== 'showroom'){
           alert('Akun ini bukan showroom')
           localStorage.clear()
           return
