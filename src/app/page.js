@@ -153,7 +153,7 @@ export default function HomePage() {
 
       {/* LIST MOBIL TERBARU */}
       <section className="container mx-auto max-w-7xl px-4 py-16">
-        <h2 className="text-3xl font-bold mb-8 text-white">Mobil Terbaru di Padang</h2>
+        <h2 className="text-3xl font-bold mb-8 text-white">Temukan Mobil Impian disini!!!</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {loading? <p className="text-gray-400 col-span-full">Loading...</p> :
             mobil.length === 0? <p className="text-gray-400 col-span-full">Belum ada data mobil</p> :
