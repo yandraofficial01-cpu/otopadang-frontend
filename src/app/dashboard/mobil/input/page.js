@@ -2,9 +2,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-const CLOUD_NAME = "jh0ct5rz" // Punya lu
-const UPLOAD_PRESET = "otopadang_preset" // Punya lu
-const API = "https://g-api.up.railway.app" // API lu
+const CLOUD_NAME = "jh0ct5rz"
+const UPLOAD_PRESET = "otopadang_preset"
+const API = "https://g-api.up.railway.app"
 
 export default function InputMobilPage() {
   const [loading, setLoading] = useState(false)
@@ -19,40 +19,39 @@ export default function InputMobilPage() {
   })
   const router = useRouter()
 
-  // 1. UPLOAD KE CLOUDINARY DULU SETIAP PILIH FILE
   const uploadToCloudinary = async (file, index) => {
     setUploading(prev => ({...prev, [index]: true}))
     try {
       const fd = new FormData()
       fd.append("file", file)
       fd.append("upload_preset", UPLOAD_PRESET)
-      fd.append("folder", "otopadang/mobil") // masuk folder mobil
+      fd.append("folder", "otopadang/mobil")
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd })
       const data = await res.json()
       if(data.secure_url){
         setForm(prev => ({...prev, [`foto_url_${index}`]: data.secure_url}))
-      } else { alert("Gagal Upload Foto") }
-    } catch(e){ alert("Error: " + e.message) }
+      } else { alert("Gagal Upload Foto: " + JSON.stringify(data)) } // FIX 1: kasih tau error cloudinary
+    } catch(e){ alert("Error Cloudinary: " + e.message) }
     setUploading(prev => ({...prev, [index]: false}))
   }
 
-  // 2. KIRIM SEMUA DATA + URL FOTO SEKALIGUS
   async function handleSubmit(e) {
     e.preventDefault()
     if(!form.nama_mobil ||!form.merek ||!form.harga ||!form.foto_url_1) return alert("Lengkapi Nama, Merek, Harga & Foto Cover")
 
     setLoading(true)
     const token = localStorage.getItem('token')
+    if(!token) return alert("Lu belum login bro") // FIX 2: cek token dulu
 
     const payload = {
-     ...form,
-      tahun: Number(form.tahun),
-      harga: Number(form.harga),
-      harga_kredit: Number(form.harga_kredit),
-      dp: Number(form.dp),
-      kilometer: Number(form.kilometer),
-      lama_angsuran: Number(form.lama_angsuran),
+    ...form,
+      tahun: Number(form.tahun) || 0,
+      harga: Number(form.harga) || 0,
+      harga_kredit: Number(form.harga_kredit) || 0,
+      dp: Number(form.dp) || 0,
+      kilometer: Number(form.kilometer) || 0,
+      lama_angsuran: Number(form.lama_angsuran) || 0,
     }
 
     try {
@@ -65,14 +64,14 @@ export default function InputMobilPage() {
         body: JSON.stringify(payload)
       })
 
+      const data = await res.json().catch(()=>({})) // FIX 3: biar ga crash kalau BE balikin kosong
       if(!res.ok) {
-        const err = await res.json()
-        alert("Gagal: " + (err.detail || "Cek login"))
+        alert("Gagal [" + res.status + "]: " + (data.detail || "Cek login / BE down"))
       } else {
         alert("Mobil berhasil diinput, menunggu approval admin")
         router.push('/dashboard/mobil/list')
       }
-    } catch(err) { alert("Error: " + err.message) }
+    } catch(err) { alert("Error: Failed to fetch. Cek CORS BE") } // ini yg muncul di SS lu
     setLoading(false)
   }
 
@@ -87,7 +86,7 @@ export default function InputMobilPage() {
         <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={e=>setForm({...form, tahun: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
         <input name="kilometer" type="number" placeholder="KM" value={form.kilometer} onChange={e=>setForm({...form, kilometer: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
 
-        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"><option>Manual</option><option>Automatic</option></select>
+        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a] border-gray-700 rounded"><option>Manual</option><option>Automatic</option></select>
         <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"><option>Bensin</option><option>Solar</option></select>
 
         <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded"/>
@@ -106,11 +105,11 @@ export default function InputMobilPage() {
               <p className="text-xs mb-1">Foto {i} {i==1 && '(Cover)'}</p>
               {form[`foto_url_${i}`]? (
                 <div>
-                  <img src={form[`foto_url_${i}`]} className="w-full h-20 object-cover rounded mb-1"/>
-                  <button type="button" onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="text-[10px] bg-red-500 px-2 py-1 rounded">Hapus</button>
+                  <img src={form[`foto_url_${i}`]} className="w-full h-24 object-cover rounded mb-1"/>
+                  <button type="button" onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="w-full text-[10px] bg-red-500 px-2 py-1 rounded">Hapus</button>
                 </div>
               ) : (
-                <label className="w-full h-20 border-2 border-dashed flex items-center justify-center cursor-pointer rounded">
+                <label className="w-full h-24 border-2 border-dashed flex items-center justify-center cursor-pointer rounded">
                   <span>{uploading[i]? "⏳" : "📸"}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e=> e.target.files[0] && uploadToCloudinary(e.target.files[0], i)} />
                 </label>
