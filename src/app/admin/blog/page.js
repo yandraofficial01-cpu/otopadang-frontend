@@ -11,12 +11,11 @@ export default function KelolaBlogPage() {
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [uploadingBanner, setUploadingBanner] = useState(false) // TAMBAH
+  const [uploadingBanner, setUploadingBanner] = useState(false)
   const [form, setForm] = useState({
-    judul: "", konten: "", gambar_cover: "", kategori: "Tips",
+    judul: "", slug: "", konten: "", gambar_cover: "", kategori: "Tips", // TAMBAH SLUG
     meta_description: "", is_sponsored: false,
-    wa_endorse: "", // TAMBAH
-    banner_iklan: "" // TAMBAH
+    wa_endorse: "", banner_iklan: ""
   })
   const [token, setToken] = useState("")
   const router = useRouter()
@@ -41,6 +40,15 @@ export default function KelolaBlogPage() {
     setLoading(false)
   }
 
+  // AUTO GENERATE SLUG DARI JUDUL
+  const generateSlug = (text) => {
+    return text.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
+  }
+  const handleJudulChange = (e) => {
+    const judul = e.target.value
+    setForm({...form, judul, slug: generateSlug(judul)}) // auto isi slug
+  }
+
   // UPLOAD GAMBAR COVER
   const handleUpload = async (e) => {
     const file = e.target.files[0]
@@ -57,7 +65,7 @@ export default function KelolaBlogPage() {
     setUploading(false)
   }
 
-  // UPLOAD BANNER IKLAN BARU
+  // UPLOAD BANNER IKLAN
   const handleUploadBanner = async (e) => {
     const file = e.target.files[0]
     if(!file) return;
@@ -75,14 +83,16 @@ export default function KelolaBlogPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if(!form.judul ||!form.konten) return alert("Judul dan Konten wajib diisi")
+    if(!form.judul ||!form.slug ||!form.konten) return alert("Judul, Slug dan Konten wajib diisi") // TAMBAH VALIDASI SLUG
+
     try {
       await axios.post(`${API_URL}/blog/`, form, { headers: {Authorization: `Bearer ${token}`} })
       alert("Blog berhasil disimpan sebagai Draft!")
-      setForm({judul: "", konten: "", gambar_cover: "", kategori: "Tips", meta_description: "", is_sponsored: false, wa_endorse: "", banner_iklan: ""})
+      setForm({judul: "", slug: "", konten: "", gambar_cover: "", kategori: "Tips", meta_description: "", is_sponsored: false, wa_endorse: "", banner_iklan: ""})
       fetchBlogs()
     } catch (err) {
-      alert("Gagal publish blog. Cek console")
+      if(err.response?.status === 409) alert("Gagal. Slug ini sudah dipakai. Ganti judul")
+      else alert("Gagal publish blog. Cek console")
       console.log(err.response?.data)
     }
   }
@@ -92,7 +102,11 @@ export default function KelolaBlogPage() {
       <h1 className="text-2xl font-bold text-yellow-400 mb-4">Kelola Blog OtoPadang</h1>
 
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6 space-y-3">
-        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={e=>setForm({...form, judul: e.target.value})} required />
+        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={handleJudulChange} required /> {/* GANTI ONCHANGE */}
+        
+        {/* INPUT SLUG BARU */}
+        <input className="w-full p-2 rounded bg-gray-700 outline-none text-sm text-yellow-300" placeholder="URL Slug. Otomatis dari judul" value={form.slug} onChange={e=>setForm({...form, slug: e.target.value})} required />
+        
         <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.konten} onChange={e=>setForm({...form, konten: e.target.value})} required />
         
         <div>
@@ -114,9 +128,8 @@ export default function KelolaBlogPage() {
           </label>
         </div>
 
-        {/* INI FIELD BARU MUNCUL KALAU CENTANG IKLAN */}
         {form.is_sponsored && (
-          <div className="space-y-2 p-3 bg-gray-700 rounded border-yellow-500">
+          <div className="space-y-2 p-3 bg-gray-700 rounded border border-yellow-500">
             <input className="w-full p-2 rounded bg-gray-600 outline-none" placeholder="Nomor WA Endorse. Contoh: 628123456789" value={form.wa_endorse} onChange={e=>setForm({...form, wa_endorse: e.target.value})} />
             <div>
               <label className="block mb-1 text-sm">Upload Banner Iklan 728x90</label>
@@ -132,17 +145,18 @@ export default function KelolaBlogPage() {
         </button>
       </form>
 
-      {/* TABEL SAMA */}
+      {/* TABEL */}
       <h2 className="text-xl font-bold mb-2">Daftar Artikel</h2>
       {loading? <p>Loading...</p> : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead><tr className="border-b border-gray-700"><th className="p-2">Judul</th><th className="p-2">Kategori</th><th className="p-2">Status</th></tr></thead>
+            <thead><tr className="border-b border-gray-700"><th className="p-2">Judul</th><th className="p-2">Slug</th><th className="p-2">Kategori</th><th className="p-2">Status</th></tr></thead> {/* TAMBAH SLUG */}
             <tbody>
-              {blogs.length === 0? (<tr><td colSpan={3} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>) :
+              {blogs.length === 0? (<tr><td colSpan={4} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>) :
               blogs.map(b => (
                 <tr key={b.id} className="border-b border-gray-800 hover:bg-gray-800">
                   <td className="p-2">{b.judul}</td>
+                  <td className="p-2 text-xs text-gray-400">{b.slug}</td> {/* TAMPILIN SLUG */}
                   <td className="p-2">{b.kategori}</td>
                   <td className="p-2">
                     <span className={`px-2 py-1 rounded text-xs ${b.status === 'published'? 'bg-green-600' : 'bg-yellow-600'}`}>
