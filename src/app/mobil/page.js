@@ -9,6 +9,7 @@ export default function MobilPage() {
   const [allMobil, setAllMobil] = useState([])
   const [filteredMobil, setFilteredMobil] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const [search, setSearch] = useState('')
   const [filterHarga, setFilterHarga] = useState('semua')
@@ -19,16 +20,23 @@ export default function MobilPage() {
   useEffect(() => {
     const fetchMobil = async () => {
       try {
-        const res = await fetch(`${API_URL}/mobil`)
-        if(!res.ok) throw new Error("API Error")
+        setLoading(true)
+        const res = await fetch(`${API_URL}/mobil`, { cache: 'no-store' })
+        if(!res.ok) throw new Error(`API Error: ${res.status}`)
+        
         const data = await res.json()
-        // cuma tampilkan yg approved
-        const approved = data.filter(m => m.status === 'approved')
+        console.log("DATA DARI API:", data) // <--- BUKA CONSOLE BUAT CEK
+
+        // FIX: Kalau API belum ada status, kita tampilkan semua dulu
+        // Nanti kalau BE udah bener, tinggal balikin filter ini
+        const approved = data.filter(m => !m.status || m.status === 'approved')
+        
         setAllMobil(approved)
         setFilteredMobil(approved)
       } catch (err) {
         console.error("Gagal fetch:", err)
-        setAllMobil([]) // biar gak error
+        setError(err.message)
+        setAllMobil([])
       } finally {
         setLoading(false)
       }
@@ -57,16 +65,17 @@ export default function MobilPage() {
       result = result.filter(m => m.lokasi === filterLokasi)
     }
     if(filterHarga !== 'semua') {
-      if(filterHarga === '100') result = result.filter(m => m.harga < 100000000) // 100 juta
-      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000 && m.harga < 200000)
-      if(filterHarga === '300') result = result.filter(m => m.harga >= 200000000 && m.harga < 300000000)
-      if(filterHarga === '500') result = result.filter(m => m.harga >= 300000000)
+      if(filterHarga === '100') result = result.filter(m => m.harga < 100000) // <100jt
+      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000000 && m.harga < 200000000) // 100-200jt FIX
+      if(filterHarga === '300') result = result.filter(m => m.harga >= 200000 && m.harga < 300000000) // 200-300jt
+      if(filterHarga === '500') result = result.filter(m => m.harga >= 300000) // >300jt
     }
     
     setFilteredMobil(result)
   }, [search, filterHarga, filterTahun, filterLokasi, allMobil])
 
-  if(loading) return <div className="text-center py-20">Loading mobil...</div>
+  if(loading) return <div className="text-center py-20 text-white">Loading mobil...</div>
+  if(error) return <div className="text-center py-20 text-red-500">Error: {error}</div>
 
   return (
     <div className="container mx-auto px-4 py-6 bg-[#0B0B0F] min-h-screen text-white">
@@ -100,13 +109,13 @@ export default function MobilPage() {
         </div>
       </div>
 
-      {/* GRID CARD MOBIL - INI YANG KEMARIN KURANG */}
+      {/* GRID CARD MOBIL */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {filteredMobil.length === 0 && <p className="col-span-4 text-center text-gray-500 py-10">Mobil tidak ditemukan</p>}
         
         {filteredMobil.map((mobil) => (
-          <Link href={`/mobil/${mobil.id}`} key={mobil.id} className="bg-[#1a1a20] rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col border border-gray-800">
-            <img src={mobil.foto_url_1} alt={mobil.nama_mobil} className="w-full h-40 object-cover" />
+          <Link href={`/mobil/${mobil.id}`} key={mobil.id} className="bg-[#1a1a20] rounded-lg shadow hover:shadow-lg transition overflow-hidden flex-col border-gray-800 hover:border-yellow-400">
+            <img src={mobil.foto_url_1 || 'https://placehold.co/400x300'} alt={mobil.nama_mobil} className="w-full h-40 object-cover" />
             <div className="p-3 flex-grow">
               <p className="font-bold text-xl text-yellow-400">Rp {mobil.harga?.toLocaleString('id-ID')}</p>
               <p className="font-bold text-sm mt-1">{mobil.merek} {mobil.nama_mobil} {mobil.tahun}</p>
@@ -118,7 +127,7 @@ export default function MobilPage() {
                 <span className="bg-gray-800 px-2 py-1 rounded">{mobil.transmisi}</span>
               </div>
 
-              <p className="text-xs text-gray-400 mt-2">{mobil.lokasi} | {mobil.showroom_nama}</p>
+              <p className="text-xs text-gray-400 mt-2">{mobil.lokasi} | {mobil.showroom_nama || 'Admin'}</p>
             </div>
 
             {/* TOMBOL WA */}
