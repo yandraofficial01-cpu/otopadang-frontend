@@ -86,19 +86,29 @@ export default function AdminPage() {
     fetchData(t)
   }, [fetchData])
 
-  // ACTION MOBIL
+  // ACTION MOBIL - UDAH FIX PAKE BODY
   const handleApproveMobil = async (id) => {
     if(!confirm('Approve mobil ini?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}/approve`, {
-      method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`${API_URL}/admin/mobil/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'approved' })
     })
     if(res.ok) fetchData(token); else alert(await res.text())
   }
 
   const handleSoldMobil = async (id) => {
     if(!confirm('Tandai mobil ini SOLD?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}/sold`, {
-      method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`${API_URL}/admin/mobil/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'sold' })
     })
     if(res.ok) fetchData(token); else alert(await res.text())
   }
@@ -144,6 +154,7 @@ export default function AdminPage() {
 
   const mobilPending = allMobil.filter(m => m.status === 'pending')
   const mobilApproved = allMobil.filter(m => m.status === 'approved')
+  const mobilSold = allMobil.filter(m => m.status === 'sold')
 
   const StatusBadge = ({status}) => {
     const colors = {
@@ -152,7 +163,7 @@ export default function AdminPage() {
       sold: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       rejected: 'bg-red-500/20 text-red-400 border-red-500/30',
     }
-    return <span className={`px-2 py-1 text-xs font-bold rounded-full border ${colors[status] || colors.pending}`}>{status.toUpperCase()}</span>
+    return <span className={`px-2 py-1 text-xs font-bold rounded-full border ${colors[status] || colors.pending}`}>{status?.toUpperCase()}</span>
   }
 
   return (
@@ -162,16 +173,16 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
           <ShieldCheck size={32} className="text-yellow-400"/> Panel Admin OTO PADANG
         </h1>
-        <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 border-red-500/30 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
+        <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 border border-red-500/30 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
           <LogOut size={18}/> Logout
         </button>
       </div>
 
-      {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>window.location.reload()} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
+      {error && <div className="bg-red-900/50 border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>window.location.reload()} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
 
       {/* STATS CARD */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><Car size={16}/> Total Mobil</p>
           <p className="text-3xl font-bold mt-2">{allMobil.length}</p>
           <p className="text-xs text-yellow-400 mt-1">{mobilPending.length} pending</p>
@@ -180,43 +191,58 @@ export default function AdminPage() {
           <p className="text-gray-400 text-sm flex items-center gap-2"><Building2 size={16}/> Showroom</p>
           <p className="text-3xl font-bold mt-2">{showrooms.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><Home size={16}/> Rumah</p>
           <p className="text-3xl font-bold mt-2">{allRumah.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><FileText size={16}/> Blog</p>
           <p className="text-3xl font-bold mt-2">{allBlog.length}</p>
         </div>
       </div>
 
       {/* TUGAS UTAMA: MOBIL PENDING */}
-      <div className="mb-8 p-6 border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent">
+      <div className="mb-8 p-6 border border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><Flame size={20}/> Review Mobil Baru ({mobilPending.length})</h2>
         {mobilPending.length === 0? <p className="text-gray-500">Tidak ada mobil baru - Total di DB: {allMobil.length}</p> :
           mobilPending.slice(0, 10).map(m => (
             <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50 hover:bg-[#1a1a20] transition">
-              <div>
-                <p className="font-bold text-lg">{m.merek} {m.nama_mobil} {m.tahun}</p>
-                <p className="text-sm text-gray-400">ID: {m.id} | Rp{(m.harga || 0).toLocaleString('id-ID')}</p>
+              <div className="flex gap-3 w-full">
+                <img
+                  src={m.foto_url_1 || 'https://via.placeholder.com/100x100.png?text=No+Image'}
+                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                  alt={m.nama_mobil}
+                />
+                <div className="flex-1">
+                  <p className="font-bold text-lg">{m.merek} {m.nama_mobil} {m.tahun}</p>
+                  <p className="text-sm text-gray-400">Dari: {m.showroom_nama} | ID: {m.id}</p>
+                  <p className="text-yellow-400 font-bold">Rp{(m.harga || 0).toLocaleString('id-ID')}</p>
+                </div>
               </div>
-              <div className="flex gap-2 mt-3 md:mt-0">
-                <button onClick={() => handleApproveMobil(m.id)} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Check size={16}/> Approve</button>
-                <button onClick={() => handleDeleteMobil(m.id)} className="bg-red-600/50 hover:bg-red-600 px-4 py-2 rounded-lg font-bold flex items-center gap-2"><Trash2 size={16}/> Delete</button>
+              <div className="flex gap-2 mt-3 md:mt-0 w-full md:w-auto">
+                <button onClick={() => handleApproveMobil(m.id)} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 flex-1"><Check size={16}/> Approve</button>
+                <button onClick={() => handleDeleteMobil(m.id)} className="bg-red-600/50 hover:bg-red-600 px-4 py-2 rounded-lg font-bold flex items-center gap-2 flex-1"><Trash2 size={16}/> Delete</button>
               </div>
             </div>
           ))
         }
       </div>
 
-      {/* MOBIL APPROVED / SOLD */}
-      <div className="mb-8 p-6 border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent">
+      {/* MOBIL APPROVED */}
+      <div className="mb-8 p-6 border border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-green-400 flex items-center gap-2"><Check size={20}/> Mobil Aktif ({mobilApproved.length})</h2>
         {mobilApproved.slice(0, 5).map(m => (
           <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
-            <div>
-              <p className="font-bold">{m.merek} {m.nama_mobil}</p>
-              <div className="flex items-center gap-2 mt-1"><StatusBadge status={m.status}/></div>
+            <div className="flex gap-3">
+              <img
+                src={m.foto_url_1 || 'https://via.placeholder.com/80x80.png'}
+                className="w-16 h-16 rounded-lg object-cover"
+              />
+              <div>
+                <p className="font-bold">{m.merek} {m.nama_mobil}</p>
+                <p className="text-sm text-gray-400">Dari: {m.showroom_nama}</p>
+                <div className="flex items-center gap-2 mt-1"><StatusBadge status={m.status}/></div>
+              </div>
             </div>
             <button onClick={() => handleSoldMobil(m.id)} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 mt-3 md:mt-0"><DollarSign size={16}/> Tandai SOLD</button>
           </div>
@@ -224,10 +250,10 @@ export default function AdminPage() {
       </div>
 
       {/* MANAJEMEN SHOWROOM */}
-      <div className="mb-8 p-6 border border-purple-500/30 rounded-2xl bg-gradient-to-br from-purple-900/10 to-transparent">
+      <div className="mb-8 p-6 border-purple-500/30 rounded-2xl bg-gradient-to-br from-purple-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-purple-400 flex items-center gap-2"><Crown size={20}/> Manajemen Showroom ({showrooms.length})</h2>
         {showrooms.map(s => (
-          <div key={s.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
+          <div key={s.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
             <div>
               <p className="font-bold flex items-center gap-2">
                 {s.nama_showroom}
@@ -246,10 +272,10 @@ export default function AdminPage() {
       {/* MENU LAINNYA */}
       <h2 className="text-xl font-bold mb-4">Menu Lainnya</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
-        <Link href="/admin/blog" className="p-4 border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
-        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
-        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition text-center flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
+        <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
+        <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
+        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
+        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
       </div>
     </div>
   )
