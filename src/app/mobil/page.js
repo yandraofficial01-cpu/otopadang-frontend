@@ -1,51 +1,140 @@
-// JANGAN LUPA GANTI NOMOR WA INI
+'use client'
+import { useState, useEffect } from 'react'
+
+const API_URL = 'https://otopadang-api.up.railway.app'
 const NOMOR_WA_SHOWROOM = "6281234567890"; 
 
-// Data dummy dulu
-const dataMobilDummy = [
-  { id: 1, judul: "Toyota Avanza 2020 Manual", harga: "Rp 185.000.000", lokasi: "Padang, Koto Tangah", img: "https://placehold.co/400x300/3B82F6/FFFFFF?text=Avanza" },
-  { id: 2, judul: "Honda Brio RS 2022", harga: "Rp 165.000.000", lokasi: "Padang, Lubeg", img: "https://placehold.co/400x300/EF4444/FFFFFF?text=Brio" },
-  { id: 3, judul: "Innova Zenix 2023", harga: "Rp 450.000.000", lokasi: "Padang, Padsel", img: "https://placehold.co/400x300/10B981/FFFFFF?text=Zenix" },
-  { id: 4, judul: "Xpander 2021", harga: "Rp 220.000.000", lokasi: "Padang, Pauh", img: "https://placehold.co/400x300/F59E0B/FFFFFF?text=Xpander" },
-];
-
 export default function MobilPage() {
+  const [allMobil, setAllMobil] = useState([])
+  const [filteredMobil, setFilteredMobil] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // STATE UNTUK FILTER
+  const [search, setSearch] = useState('')
+  const [filterHarga, setFilterHarga] = useState('semua')
+  const [filterTahun, setFilterTahun] = useState('semua')
+  const [filterLokasi, setFilterLokasi] = useState('semua')
+
+  // 1. FETCH DATA DARI API
+  useEffect(() => {
+    const fetchMobil = async () => {
+      try {
+        const res = await fetch(`${API_URL}/mobil`) // endpoint public
+        const data = await res.json()
+        // cuma tampilkan yg approved
+        const approved = data.filter(m => m.status === 'approved')
+        setAllMobil(approved)
+        setFilteredMobil(approved)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchMobil()
+  }, [])
+
+  // 2. AMBIL DATA UNIK BUAT DROPDOWN
+  const listTahun = [...new Set(allMobil.map(m => m.tahun))].sort((a,b) => b-a)
+  const listLokasi = [...new Set(allMobil.map(m => m.lokasi))].sort()
+
+  // 3. FUNGSI FILTER
+  useEffect(() => {
+    let result = [...allMobil]
+
+    if(search) {
+      result = result.filter(m => 
+        m.nama_mobil.toLowerCase().includes(search.toLowerCase()) ||
+        m.merek.toLowerCase().includes(search.toLowerCase())
+      )
+    }
+    if(filterTahun !== 'semua') {
+      result = result.filter(m => m.tahun == filterTahun)
+    }
+    if(filterLokasi !== 'semua') {
+      result = result.filter(m => m.lokasi === filterLokasi)
+    }
+    if(filterHarga !== 'semua') {
+      if(filterHarga === '100') result = result.filter(m => m.harga < 100000)
+      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000 && m.harga < 200000000)
+      if(filterHarga === '300') result = result.filter(m => m.harga >= 200000 && m.harga < 300000000)
+      if(filterHarga === '500') result = result.filter(m => m.harga >= 300000000)
+    }
+    
+    setFilteredMobil(result)
+  }, [search, filterHarga, filterTahun, filterLokasi, allMobil])
+
+  if(loading) return <div className="text-center py-20">Loading mobil...</div>
+
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 bg-[#0B0B0F] min-h-screen text-white">
       <h1 className="text-2xl font-bold mb-4">Mobil Dijual di Padang</h1>
       
       {/* INI SEARCH FILTER KAYAK OLX */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <div className="bg-[#1a1a20] p-4 rounded-lg shadow mb-6 border-gray-800">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <input type="text" placeholder="Cari merek, model..." className="border rounded-lg px-3 py-2" />
-          <select className="border rounded-lg px-3 py-2"><option>Semua Harga</option></select>
-          <select className="border rounded-lg px-3 py-2"><option>Semua Tahun</option></select>
-          <button className="bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700">Cari</button>
+          <input 
+            type="text" 
+            placeholder="Cari merek, model..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2 text-white" 
+          />
+          
+          {/* DROPDOWN HARGA */}
+          <select value={filterHarga} onChange={(e) => setFilterHarga(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
+            <option value="semua">Semua Harga</option>
+            <option value="100">Dibawah 100 Juta</option>
+            <option value="200">100 - 200 Juta</option>
+            <option value="300">200 - 300 Juta</option>
+            <option value="500">Diatas 300 Juta</option>
+          </select>
+
+          {/* DROPDOWN TAHUN */}
+          <select value={filterTahun} onChange={(e) => setFilterTahun(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
+            <option value="semua">Semua Tahun</option>
+            {listTahun.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+
+          {/* DROPDOWN LOKASI */}
+          <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
+            <option value="semua">Semua Lokasi</option>
+            {listLokasi.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
         </div>
       </div>
 
-      {/* INI GRID CARD + TOMBOL WA */}
+      {/* INI GRID CARD + SPEK LENGKAP */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {dataMobilDummy.map((mobil) => (
-          <div key={mobil.id} className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col">
-            <img src={mobil.img} alt={mobil.judul} className="w-full h-40 object-cover" />
+        {filteredMobil.length === 0 && <p className="col-span-4 text-center text-gray-500">Mobil tidak ditemukan</p>}
+        
+        {filteredMobil.map((mobil) => (
+          <div key={mobil.id} className="bg-[#1a1a20] rounded-lg shadow hover:shadow-lg transition overflow-hidden flex-col border-gray-800">
+            <img src={mobil.foto_url_1} alt={mobil.nama_mobil} className="w-full h-40 object-cover" />
             <div className="p-3 flex-grow">
-              <p className="font-bold text-lg">{mobil.harga}</p>
-              <p className="text-sm mt-1 h-10 overflow-hidden">{mobil.judul}</p>
-              <p className="text-xs text-gray-500 mt-2">{mobil.lokasi}</p>
+              <p className="font-bold text-xl text-yellow-400">Rp {mobil.harga?.toLocaleString('id-ID')}</p>
+              <p className="font-bold text-sm mt-1">{mobil.merek} {mobil.nama_mobil} {mobil.tahun}</p>
+              
+              {/* INI SPEKNYA BRO */}
+              <div className="flex flex-wrap gap-1 my-2 text-xs text-gray-300">
+                <span className="bg-gray-800 px-2 py-1 rounded">{mobil.tahun}</span>
+                <span className="bg-gray-800 px-2 py-1 rounded">{mobil.kilometer?.toLocaleString('id-ID')} KM</span>
+                <span className="bg-gray-800 px-2 py-1 rounded">{mobil.transmisi}</span>
+              </div>
+
+              <p className="text-xs text-gray-400 mt-2">{mobil.lokasi} | {mobil.showroom_nama}</p>
             </div>
 
             {/* TOMBOL CHAT WA */}
             <div className="p-3 pt-0">
               <a 
-                href={`https://wa.me/${NOMOR_WA_SHOWROOM}?text=Halo,%20saya%20tertarik%20dengan%20${encodeURIComponent(mobil.judul)}%20di%20Otopadang.com`} 
+                href={`https://wa.me/${NOMOR_WA_SHOWROOM}?text=Halo,%20saya%20tertarik%20dengan%20${encodeURIComponent(mobil.merek + ' ' + mobil.nama_mobil)}%20di%20Otopadang.com`} 
                 target="_blank"
                 className="w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded-lg font-semibold block"
               >
                 Chat via WhatsApp
               </a>
             </div>
-
           </div>
         ))}
       </div>
