@@ -4,17 +4,16 @@ import axios from "axios"
 import { useRouter } from "next/navigation"
 
 const API_URL = "https://otopadang-api.up.railway.app"
+const CLOUD_NAME = "jh0ct5rz" // PUNYA LU
+const UPLOAD_PRESET = "otopadang_preset" // IKUTIN NAMA DI CLOUDINARY
 
 export default function KelolaBlogPage() {
   const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false) // TAMBAH
   const [form, setForm] = useState({
-    judul: "", 
-    konten: "", // ganti dari "isi"
-    gambar_cover: "", // ganti dari "gambar"
-    kategori: "Tips",
-    meta_description: "",
-    is_sponsored: false
+    judul: "", konten: "", gambar_cover: "", kategori: "Tips",
+    meta_description: "", is_sponsored: false
   })
   const [token, setToken] = useState("")
   const router = useRouter()
@@ -49,6 +48,28 @@ export default function KelolaBlogPage() {
     setLoading(false)
   }
 
+  // FUNCTION UPLOAD KE CLOUDINARY
+  const handleUpload = async (e) => {
+    const file = e.target.files[0]
+    if(!file) return;
+    setUploading(true)
+
+    const data = new FormData()
+    data.append('file', file)
+    data.append('upload_preset', UPLOAD_PRESET)
+    data.append('folder', 'otopadang/blog')
+
+    try {
+      const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, data)
+      setForm({...form, gambar_cover: res.data.secure_url})
+      alert("Gambar berhasil diupload!")
+    } catch(err) {
+      alert("Gagal upload gambar")
+      console.log(err)
+    }
+    setUploading(false)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if(!form.judul ||!form.konten) return alert("Judul dan Konten wajib diisi")
@@ -59,10 +80,10 @@ export default function KelolaBlogPage() {
       })
       alert("Blog berhasil disimpan sebagai Draft!")
       setForm({judul: "", konten: "", gambar_cover: "", kategori: "Tips", meta_description: "", is_sponsored: false})
-      fetchBlogs() // fetch ulang
+      fetchBlogs()
     } catch (err) {
       alert("Gagal publish blog. Cek console")
-      console.log(err.response.data)
+      console.log(err.response?.data)
     }
   }
 
@@ -73,16 +94,29 @@ export default function KelolaBlogPage() {
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6 space-y-3">
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={e=>setForm({...form, judul: e.target.value})} required />
         <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.konten} onChange={e=>setForm({...form, konten: e.target.value})} required />
-        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Link Gambar Cover" value={form.gambar_cover} onChange={e=>setForm({...form, gambar_cover: e.target.value})} />
+        
+        {/* INI GANTI INPUT LINK JADI UPLOAD */}
+        <div>
+          <label className="block mb-1 text-sm">Upload Gambar Cover</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={handleUpload}
+            className="w-full p-2 rounded bg-gray-700 text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-yellow-400 file:text-black file:font-bold"
+          />
+          {uploading && <p className="text-yellow-400 text-sm mt-1">Uploading ke Cloudinary...</p>}
+          {form.gambar_cover && <img src={form.gambar_cover} alt="preview" className="w-full h-40 object-cover rounded mt-2 border-gray-600" />}
+        </div>
+
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Meta Description SEO 160 karakter" maxLength={160} value={form.meta_description} onChange={e=>setForm({...form, meta_description: e.target.value})} />
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           <select className="w-full p-2 rounded bg-gray-700 outline-none" value={form.kategori} onChange={e=>setForm({...form, kategori: e.target.value})}>
             <option>Tips</option>
             <option>Otomotif</option>
             <option>Properti</option>
             <option>Berita</option>
           </select>
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-2 whitespace-nowrap">
             <input type="checkbox" checked={form.is_sponsored} onChange={e=>setForm({...form, is_sponsored: e.target.checked})} />
             <span>Iklan?</span>
           </label>
