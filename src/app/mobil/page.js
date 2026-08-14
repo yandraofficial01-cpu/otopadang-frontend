@@ -16,23 +16,20 @@ export default function MobilPage() {
   const [filterTahun, setFilterTahun] = useState('semua')
   const [filterLokasi, setFilterLokasi] = useState('semua')
 
-  // 1. FETCH DATA DARI API
+  // 1. FETCH DATA DARI API - UDAH FIX
   useEffect(() => {
     const fetchMobil = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`${API_URL}/mobil`, { cache: 'no-store' })
+        const res = await fetch(`${API_URL}/mobil/all-public`, { cache: 'no-store' }) // <--- INI YG DIGANTI
         if(!res.ok) throw new Error(`API Error: ${res.status}`)
         
         const data = await res.json()
-        console.log("DATA DARI API:", data) // <--- BUKA CONSOLE BUAT CEK
+        console.log("DATA DARI API:", data)
 
-        // FIX: Kalau API belum ada status, kita tampilkan semua dulu
-        // Nanti kalau BE udah bener, tinggal balikin filter ini
-        const approved = data.filter(m => !m.status || m.status === 'approved')
-        
-        setAllMobil(approved)
-        setFilteredMobil(approved)
+        // BE udah filter approved, jadi langsung set aja
+        setAllMobil(data)
+        setFilteredMobil(data)
       } catch (err) {
         console.error("Gagal fetch:", err)
         setError(err.message)
@@ -48,7 +45,7 @@ export default function MobilPage() {
   const listTahun = [...new Set(allMobil.map(m => m.tahun))].filter(Boolean).sort((a,b) => b-a)
   const listLokasi = [...new Set(allMobil.map(m => m.lokasi))].filter(Boolean).sort()
 
-  // 3. FUNGSI FILTER
+  // 3. FUNGSI FILTER - UDAH FIX ANGKA
   useEffect(() => {
     let result = [...allMobil]
 
@@ -66,7 +63,7 @@ export default function MobilPage() {
     }
     if(filterHarga !== 'semua') {
       if(filterHarga === '100') result = result.filter(m => m.harga < 100000) // <100jt
-      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000000 && m.harga < 200000000) // 100-200jt FIX
+      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000 && m.harga < 200000) // 100-200jt
       if(filterHarga === '300') result = result.filter(m => m.harga >= 200000 && m.harga < 300000000) // 200-300jt
       if(filterHarga === '500') result = result.filter(m => m.harga >= 300000) // >300jt
     }
@@ -82,27 +79,27 @@ export default function MobilPage() {
       <h1 className="text-2xl font-bold mb-4">Mobil Dijual di Padang</h1>
       
       {/* SEARCH FILTER */}
-      <div className="bg-[#1a1a20] p-4 rounded-lg shadow mb-6 border border-gray-800">
+      <div className="bg-[#1a1a20] p-4 rounded-lg shadow mb-6 border-gray-800">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <input 
             type="text" 
             placeholder="Cari merek, model..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2 text-white" 
+            className="border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2 text-white" 
           />
-          <select value={filterHarga} onChange={(e) => setFilterHarga(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
+          <select value={filterHarga} onChange={(e) => setFilterHarga(e.target.value)} className="border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
             <option value="semua">Semua Harga</option>
             <option value="100">Dibawah 100 Juta</option>
             <option value="200">100 - 200 Juta</option>
             <option value="300">200 - 300 Juta</option>
             <option value="500">Diatas 300 Juta</option>
           </select>
-          <select value={filterTahun} onChange={(e) => setFilterTahun(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
+          <select value={filterTahun} onChange={(e) => setFilterTahun(e.target.value)} className="border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
             <option value="semua">Semua Tahun</option>
             {listTahun.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
+          <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
             <option value="semua">Semua Lokasi</option>
             {listLokasi.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
