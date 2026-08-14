@@ -33,19 +33,54 @@ function CursorPointer() {
 }
 
 export default function HomePage() {
-  const [mobil, setMobil] = useState([]); const [rumah, setRumah] = useState([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(null); const [activeBtn, setActiveBtn] = useState('mobil');
-  useEffect(() => { const interval = setInterval(() => { setActiveBtn(prev => prev === 'mobil'? 'rumah' : 'mobil'); }, 2000); return () => clearInterval(interval); }, []);
+  const [mobil, setMobil] = useState([]); 
+  const [rumah, setRumah] = useState([]); 
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null); 
+  const [activeBtn, setActiveBtn] = useState('mobil');
+
+  useEffect(() => { 
+    const interval = setInterval(() => { 
+      setActiveBtn(prev => prev === 'mobil'? 'rumah' : 'mobil'); 
+    }, 2000); 
+    return () => clearInterval(interval); 
+  }, []);
+
   useEffect(() => {
     const getData = async () => {
       setLoading(true); setError(null);
       try {
-        const [resMobil, resRumah] = await Promise.all([fetch(`${API_URL}/mobil/`, { cache: 'no-store' }), fetch(`${API_URL}/rumah/`, { cache: 'no-store' })]);
-        const dataMobil = await resMobil.json(); const dataRumah = await resRumah.json();
-        setMobil(dataMobil.slice(0, 8)); setRumah(dataRumah.slice(0, 8));
-      } catch (err) { setError(err.message); } finally { setLoading(false); }
-    }; getData();
+        // FIX 1: GANTI KE /all-public
+        const [resMobil, resRumah] = await Promise.all([
+          fetch(`${API_URL}/mobil/all-public`, { cache: 'no-store' }), 
+          fetch(`${API_URL}/rumah/`, { cache: 'no-store' })
+        ]);
+        
+        const dataMobil = await resMobil.json(); 
+        const dataRumah = await resRumah.json();
+
+        // FIX 2: SAFETY CHECK BIAR GAK ERROR SLICE LAGI
+        const mobilArray = Array.isArray(dataMobil)? dataMobil : [];
+        const rumahArray = Array.isArray(dataRumah)? dataRumah : [];
+
+        setMobil(mobilArray.slice(0, 8)); 
+        setRumah(rumahArray.slice(0, 8));
+      } catch (err) { 
+        console.error(err);
+        setError(err.message); 
+      } finally { 
+        setLoading(false); 
+      }
+    }; 
+    getData();
   }, []);
-  const pesanWA = (item, tipe) => { const noWa = item.wa_number || "62812PUSAT"; const nama = tipe === 'rumah'? item.nama_rumah : item.nama_mobil || `${item.merek} ${item.tipe}`; const text = `Halo Otopadang, saya tertarik dengan ${nama} seharga Rp ${item.harga?.toLocaleString('id-ID')}. Apakah masih tersedia?`; window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(text)}`, '_blank'); }
+
+  const pesanWA = (item, tipe) => { 
+    const noWa = item.wa_showroom || item.wa_number || "62812PUSAT"; // pake wa_showroom dari BE baru
+    const nama = tipe === 'rumah'? item.nama_rumah : item.nama_mobil || `${item.merek} ${item.tipe}`; 
+    const text = `Halo Otopadang, saya tertarik dengan ${nama} seharga Rp ${item.harga?.toLocaleString('id-ID')}. Apakah masih tersedia?`; 
+    window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(text)}`, '_blank'); 
+  }
 
   return (
     <main className="min-h-screen bg-[#0B0B0F] text-white">
@@ -62,14 +97,15 @@ export default function HomePage() {
 
       {error && <p className="text-red-500 text-center my-4">Error: {error}</p>}
 
-      {/* LIST MOBIL - UDAH FIX */}
+      {/* LIST MOBIL */}
       <section className="container mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-3xl font-bold mb-2">Mobil Impian Urang Padang</h2>
         <p className="text-gray-400 mb-8">Update tiap hari. Harga langsung dari showroom</p>
         <div className="relative">
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0B0B0F] to-transparent pointer-events-none z-10"></div>
-          <div className="flex gap-6 pb-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory"> {/* HAPUS motion + drag */}
+          <div className="flex gap-6 pb-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {loading? Array.from({length:4}).map((_,i)=><div key={i} className="w-[300px] aspect-[3/4] bg-[#1A1A1F] rounded-2xl animate-pulse flex-shrink-0 snap-start"></div>) :
+              mobil.length === 0? <p className="text-gray-500">Belum ada mobil</p> :
               mobil.map((m, i) => {
                 const images = [m.foto_url_1, m.foto_url_2, m.foto_url_3, m.foto_url_4, m.foto_url_5].filter(Boolean);
                 return (
@@ -78,7 +114,7 @@ export default function HomePage() {
                     <ImageSlider images={images} />
                     <div className="p-4">
                       <h3 className="font-bold text-lg">{m.nama_mobil || `${m.merek} ${m.tipe}`} {m.tahun}</h3>
-                      <p className="text-gray-400 text-sm">{m.lokasi}</p>
+                      <p className="text-gray-400 text-sm">{m.lokasi} | {m.showroom_nama}</p>
                       <p className="text-yellow-400 font-bold text-xl mt-2">Rp {m.harga?.toLocaleString('id-ID')}</p>
                       <button onClick={() => pesanWA(m, 'mobil')} className="w-full mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition active:scale-95">Hubungi via WA</button>
                     </div>
@@ -90,14 +126,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* LIST RUMAH - UDAH FIX */}
+      {/* LIST RUMAH */}
       <section className="container mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-3xl font-bold mb-2">Rumah Ready di Padang</h2>
         <p className="text-gray-400 mb-8">Langsung akad, tanpa ribet. Ada yg free canopy loh</p>
         <div className="relative">
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0B0B0F] to-transparent pointer-events-none z-10"></div>
-          <div className="flex gap-6 pb-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory"> {/* HAPUS motion + drag */}
+          <div className="flex gap-6 pb-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {loading? Array.from({length:4}).map((_,i)=><div key={i} className="w-[300px] aspect-[3/4] bg-[#1A1A1F] rounded-2xl animate-pulse flex-shrink-0 snap-start"></div>) :
+              rumah.length === 0? <p className="text-gray-500">Belum ada rumah</p> :
               rumah.map((r, i) => {
                 const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
                 return (
