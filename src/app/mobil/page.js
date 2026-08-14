@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 const API_URL = 'https://otopadang-api.up.railway.app'
 const NOMOR_WA_SHOWROOM = "6281234567890"; 
@@ -9,7 +10,6 @@ export default function MobilPage() {
   const [filteredMobil, setFilteredMobil] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // STATE UNTUK FILTER
   const [search, setSearch] = useState('')
   const [filterHarga, setFilterHarga] = useState('semua')
   const [filterTahun, setFilterTahun] = useState('semua')
@@ -19,14 +19,16 @@ export default function MobilPage() {
   useEffect(() => {
     const fetchMobil = async () => {
       try {
-        const res = await fetch(`${API_URL}/mobil`) // endpoint public
+        const res = await fetch(`${API_URL}/mobil`)
+        if(!res.ok) throw new Error("API Error")
         const data = await res.json()
         // cuma tampilkan yg approved
         const approved = data.filter(m => m.status === 'approved')
         setAllMobil(approved)
         setFilteredMobil(approved)
       } catch (err) {
-        console.error(err)
+        console.error("Gagal fetch:", err)
+        setAllMobil([]) // biar gak error
       } finally {
         setLoading(false)
       }
@@ -35,8 +37,8 @@ export default function MobilPage() {
   }, [])
 
   // 2. AMBIL DATA UNIK BUAT DROPDOWN
-  const listTahun = [...new Set(allMobil.map(m => m.tahun))].sort((a,b) => b-a)
-  const listLokasi = [...new Set(allMobil.map(m => m.lokasi))].sort()
+  const listTahun = [...new Set(allMobil.map(m => m.tahun))].filter(Boolean).sort((a,b) => b-a)
+  const listLokasi = [...new Set(allMobil.map(m => m.lokasi))].filter(Boolean).sort()
 
   // 3. FUNGSI FILTER
   useEffect(() => {
@@ -44,8 +46,8 @@ export default function MobilPage() {
 
     if(search) {
       result = result.filter(m => 
-        m.nama_mobil.toLowerCase().includes(search.toLowerCase()) ||
-        m.merek.toLowerCase().includes(search.toLowerCase())
+        m.nama_mobil?.toLowerCase().includes(search.toLowerCase()) ||
+        m.merek?.toLowerCase().includes(search.toLowerCase())
       )
     }
     if(filterTahun !== 'semua') {
@@ -55,9 +57,9 @@ export default function MobilPage() {
       result = result.filter(m => m.lokasi === filterLokasi)
     }
     if(filterHarga !== 'semua') {
-      if(filterHarga === '100') result = result.filter(m => m.harga < 100000)
-      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000 && m.harga < 200000000)
-      if(filterHarga === '300') result = result.filter(m => m.harga >= 200000 && m.harga < 300000000)
+      if(filterHarga === '100') result = result.filter(m => m.harga < 100000000) // 100 juta
+      if(filterHarga === '200') result = result.filter(m => m.harga >= 100000 && m.harga < 200000)
+      if(filterHarga === '300') result = result.filter(m => m.harga >= 200000000 && m.harga < 300000000)
       if(filterHarga === '500') result = result.filter(m => m.harga >= 300000000)
     }
     
@@ -70,8 +72,8 @@ export default function MobilPage() {
     <div className="container mx-auto px-4 py-6 bg-[#0B0B0F] min-h-screen text-white">
       <h1 className="text-2xl font-bold mb-4">Mobil Dijual di Padang</h1>
       
-      {/* INI SEARCH FILTER KAYAK OLX */}
-      <div className="bg-[#1a1a20] p-4 rounded-lg shadow mb-6 border-gray-800">
+      {/* SEARCH FILTER */}
+      <div className="bg-[#1a1a20] p-4 rounded-lg shadow mb-6 border border-gray-800">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <input 
             type="text" 
@@ -80,8 +82,6 @@ export default function MobilPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2 text-white" 
           />
-          
-          {/* DROPDOWN HARGA */}
           <select value={filterHarga} onChange={(e) => setFilterHarga(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
             <option value="semua">Semua Harga</option>
             <option value="100">Dibawah 100 Juta</option>
@@ -89,14 +89,10 @@ export default function MobilPage() {
             <option value="300">200 - 300 Juta</option>
             <option value="500">Diatas 300 Juta</option>
           </select>
-
-          {/* DROPDOWN TAHUN */}
           <select value={filterTahun} onChange={(e) => setFilterTahun(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
             <option value="semua">Semua Tahun</option>
             {listTahun.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-
-          {/* DROPDOWN LOKASI */}
           <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="border border-gray-700 bg-[#0B0B0F] rounded-lg px-3 py-2">
             <option value="semua">Semua Lokasi</option>
             {listLokasi.map(l => <option key={l} value={l}>{l}</option>)}
@@ -104,18 +100,18 @@ export default function MobilPage() {
         </div>
       </div>
 
-      {/* INI GRID CARD + SPEK LENGKAP */}
+      {/* GRID CARD MOBIL - INI YANG KEMARIN KURANG */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {filteredMobil.length === 0 && <p className="col-span-4 text-center text-gray-500">Mobil tidak ditemukan</p>}
+        {filteredMobil.length === 0 && <p className="col-span-4 text-center text-gray-500 py-10">Mobil tidak ditemukan</p>}
         
         {filteredMobil.map((mobil) => (
-          <div key={mobil.id} className="bg-[#1a1a20] rounded-lg shadow hover:shadow-lg transition overflow-hidden flex-col border-gray-800">
+          <Link href={`/mobil/${mobil.id}`} key={mobil.id} className="bg-[#1a1a20] rounded-lg shadow hover:shadow-lg transition overflow-hidden flex flex-col border border-gray-800">
             <img src={mobil.foto_url_1} alt={mobil.nama_mobil} className="w-full h-40 object-cover" />
             <div className="p-3 flex-grow">
               <p className="font-bold text-xl text-yellow-400">Rp {mobil.harga?.toLocaleString('id-ID')}</p>
               <p className="font-bold text-sm mt-1">{mobil.merek} {mobil.nama_mobil} {mobil.tahun}</p>
               
-              {/* INI SPEKNYA BRO */}
+              {/* SPEK */}
               <div className="flex flex-wrap gap-1 my-2 text-xs text-gray-300">
                 <span className="bg-gray-800 px-2 py-1 rounded">{mobil.tahun}</span>
                 <span className="bg-gray-800 px-2 py-1 rounded">{mobil.kilometer?.toLocaleString('id-ID')} KM</span>
@@ -125,17 +121,13 @@ export default function MobilPage() {
               <p className="text-xs text-gray-400 mt-2">{mobil.lokasi} | {mobil.showroom_nama}</p>
             </div>
 
-            {/* TOMBOL CHAT WA */}
+            {/* TOMBOL WA */}
             <div className="p-3 pt-0">
-              <a 
-                href={`https://wa.me/${NOMOR_WA_SHOWROOM}?text=Halo,%20saya%20tertarik%20dengan%20${encodeURIComponent(mobil.merek + ' ' + mobil.nama_mobil)}%20di%20Otopadang.com`} 
-                target="_blank"
-                className="w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded-lg font-semibold block"
-              >
+              <div className="w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded-lg font-semibold">
                 Chat via WhatsApp
-              </a>
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
