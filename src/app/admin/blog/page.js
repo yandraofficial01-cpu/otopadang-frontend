@@ -92,12 +92,12 @@ export default function KelolaBlogPage() {
     }
   }
 
-  // TAMBAHAN: FUNGSI APPROVE
+  // FIX: TAMBAH /publish
   const handlePublish = async (id) => {
     if(!confirm("Yakin mau publish artikel ini?")) return;
     try {
-      await axios.put(`${API_URL}/blog/${id}`,
-        { status: "published" },
+      await axios.put(`${API_URL}/blog/${id}/publish`, // <-- INI YG BENER
+        {}, // body kosong
         { headers: {Authorization: `Bearer ${token}`} }
       )
       alert("Artikel berhasil dipublish!")
@@ -107,7 +107,6 @@ export default function KelolaBlogPage() {
     }
   }
 
-  // TAMBAHAN: FUNGSI DELETE
   const handleDelete = async (id) => {
     if(!confirm("Yakin mau hapus artikel ini?")) return;
     try {
@@ -175,7 +174,7 @@ export default function KelolaBlogPage() {
                 <th className="p-2">Judul</th>
                 <th className="p-2">Kategori</th>
                 <th className="p-2">Status</th>
-                <th className="p-2">Aksi</th> {/* TAMBAH KOLOM AKSI */}
+                <th className="p-2">Aksi</th>
               </tr>
             </thead>
             <tbody>
