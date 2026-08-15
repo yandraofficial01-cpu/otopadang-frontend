@@ -14,15 +14,15 @@ export default function KelolaBlogPage() {
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [form, setForm] = useState({
     judul: "",
-    konten: "", // FIX 1: DARI isi JADI konten
+    konten: "",
     gambar_cover: "",
-    kategori: "Tips", // FIX 2: DARI kategori_id JADI kategori + string
+    kategori: "Tips",
     meta_description: "",
     is_sponsored: false,
-    nama_pengiklan: "", // FIX 3: DARI wa_endorse JADI nama_pengiklan
-    link_pengiklan: "", // FIX 4: TAMBAH INI BUAT URL WA
+    nama_pengiklan: "",
+    link_pengiklan: "",
     banner_iklan: "",
-    penulis: "Admin" // FIX 5: TAMBAH INI WAJIB
+    penulis: "Admin"
   })
   const [token, setToken] = useState("")
   const router = useRouter()
@@ -81,13 +81,23 @@ export default function KelolaBlogPage() {
     e.preventDefault()
     if(!form.judul ||!form.konten) return alert("Judul dan Konten wajib diisi")
 
-    // BUAT LINK WA OTOMATIS DARI NOMOR
+    // BODY DISESUAIKAN 100% SAMA DB
     const body = {
-     ...form,
-      slug: undefined, // HAPUS SLUG BIAR BE YANG BUAT
-      link_pengiklan: form.is_sponsored? `https://wa.me/${form.nama_pengiklan}` : null,
-      status: "draft"
+      judul: form.judul,
+      konten: form.konten,
+      kategori: form.kategori,
+      gambar_cover: form.gambar_cover || "",
+      meta_description: form.meta_description || "",
+      is_sponsored: form.is_sponsored? 1 : 0, // DB lu tinyint(1)
+      nama_pengiklan: form.nama_pengiklan || "",
+      link_pengiklan: form.is_sponsored && form.nama_pengiklan? `https://wa.me/${form.nama_pengiklan}` : "",
+      banner_iklan: form.banner_iklan || "",
+      penulis: form.penulis,
+      status: "draft",
+      slug: "" // KIRIM KOSONG, BIAR BE GENERATE
     }
+
+    console.log("BODY YANG DIKIRIM:", body)
 
     try {
       await axios.post(`${API_URL}/blog/`, body, { headers: {Authorization: `Bearer ${token}`} })
@@ -96,8 +106,8 @@ export default function KelolaBlogPage() {
       fetchBlogs()
     } catch (err) {
       console.log("DETAIL ERROR:", err.response?.data)
-      if(err.response?.status === 409) alert("Gagal. Judul ini sudah dipakai")
-      else alert("Gagal publish blog. Cek console")
+      // KALAU DI HP GAK ADA CONSOLE, PAKE INI BIAR KELUAR ERRORNYA
+      alert(JSON.stringify(err.response?.data, null, 2))
     }
   }
 
@@ -107,7 +117,7 @@ export default function KelolaBlogPage() {
 
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6 space-y-3">
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={e=>setForm({...form, judul: e.target.value})} required />
-        <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.konten} onChange={e=>setForm({...form, konten: e.target.value})} required /> {/* FIX */}
+        <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.konten} onChange={e=>setForm({...form, konten: e.target.value})} required />
 
         <div>
           <label className="block mb-1 text-sm">Upload Gambar Cover</label>
@@ -121,7 +131,7 @@ export default function KelolaBlogPage() {
         <div className="flex gap-4 items-center">
           <select
             className="w-full p-2 rounded bg-gray-700 outline-none"
-            value={form.kategori} // FIX: STRING BUKAN ID
+            value={form.kategori}
             onChange={e=>setForm({...form, kategori: e.target.value})}
           >
             <option value="Tips">Tips</option>
@@ -137,7 +147,7 @@ export default function KelolaBlogPage() {
 
         {form.is_sponsored && (
           <div className="space-y-2 p-3 bg-gray-700 rounded border border-yellow-500">
-            <input className="w-full p-2 rounded bg-gray-600 outline-none" placeholder="Nomor WA Endorse. Contoh: 628123456789" value={form.nama_pengiklan} onChange={e=>setForm({...form, nama_pengiklan: e.target.value})} /> {/* FIX */}
+            <input className="w-full p-2 rounded bg-gray-600 outline-none" placeholder="Nomor WA Endorse. Contoh: 628123456789" value={form.nama_pengiklan} onChange={e=>setForm({...form, nama_pengiklan: e.target.value})} />
             <div>
               <label className="block mb-1 text-sm">Upload Banner Iklan 728x90</label>
               <input type="file" accept="image/*" onChange={handleUploadBanner} className="w-full p-2 rounded bg-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:bg-yellow-400 file:text-black file:font-bold"/>
@@ -162,7 +172,7 @@ export default function KelolaBlogPage() {
               blogs.map(b => (
                 <tr key={b.id} className="border-b border-gray-800 hover:bg-gray-800">
                   <td className="p-2">{b.judul}</td>
-                  <td className="p-2">{b.kategori}</td> {/* FIX */}
+                  <td className="p-2">{b.kategori}</td>
                   <td className="p-2">
                     <span className={`px-2 py-1 rounded text-xs ${b.status === 'published'? 'bg-green-600' : 'bg-yellow-600'}`}>
                       {b.status}
