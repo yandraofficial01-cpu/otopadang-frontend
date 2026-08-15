@@ -13,9 +13,15 @@ export default function KelolaBlogPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [form, setForm] = useState({
-    judul: "", slug: "", konten: "", gambar_cover: "", kategori: "Tips", // TAMBAH SLUG
-    meta_description: "", is_sponsored: false,
-    wa_endorse: "", banner_iklan: ""
+    judul: "",
+    slug: "",
+    konten: "",
+    gambar_cover: "",
+    kategori: 1, // FIX: GANTI JADI ANGKA 1 = Tips
+    meta_description: "",
+    is_sponsored: false,
+    wa_endorse: "",
+    banner_iklan: ""
   })
   const [token, setToken] = useState("")
   const router = useRouter()
@@ -46,7 +52,7 @@ export default function KelolaBlogPage() {
   }
   const handleJudulChange = (e) => {
     const judul = e.target.value
-    setForm({...form, judul, slug: generateSlug(judul)}) // auto isi slug
+    setForm({...form, judul, slug: generateSlug(judul)})
   }
 
   // UPLOAD GAMBAR COVER
@@ -83,17 +89,18 @@ export default function KelolaBlogPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if(!form.judul ||!form.slug ||!form.konten) return alert("Judul, Slug dan Konten wajib diisi") // TAMBAH VALIDASI SLUG
+    if(!form.judul ||!form.slug ||!form.konten) return alert("Judul, Slug dan Konten wajib diisi")
 
     try {
       await axios.post(`${API_URL}/blog/`, form, { headers: {Authorization: `Bearer ${token}`} })
       alert("Blog berhasil disimpan sebagai Draft!")
-      setForm({judul: "", slug: "", konten: "", gambar_cover: "", kategori: "Tips", meta_description: "", is_sponsored: false, wa_endorse: "", banner_iklan: ""})
+      setForm({judul: "", slug: "", konten: "", gambar_cover: "", kategori: 1, meta_description: "", is_sponsored: false, wa_endorse: "", banner_iklan: ""}) // FIX: reset jadi 1
       fetchBlogs()
     } catch (err) {
       if(err.response?.status === 409) alert("Gagal. Slug ini sudah dipakai. Ganti judul")
+      else if(err.response?.status === 422) alert("Gagal. Ada data yg salah. Cek Kategori")
       else alert("Gagal publish blog. Cek console")
-      console.log(err.response?.data)
+      console.log(err.response?.data) // ini penting buat debug
     }
   }
 
@@ -102,13 +109,12 @@ export default function KelolaBlogPage() {
       <h1 className="text-2xl font-bold text-yellow-400 mb-4">Kelola Blog OtoPadang</h1>
 
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6 space-y-3">
-        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={handleJudulChange} required /> {/* GANTI ONCHANGE */}
-        
-        {/* INPUT SLUG BARU */}
+        <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={handleJudulChange} required />
+
         <input className="w-full p-2 rounded bg-gray-700 outline-none text-sm text-yellow-300" placeholder="URL Slug. Otomatis dari judul" value={form.slug} onChange={e=>setForm({...form, slug: e.target.value})} required />
-        
+
         <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.konten} onChange={e=>setForm({...form, konten: e.target.value})} required />
-        
+
         <div>
           <label className="block mb-1 text-sm">Upload Gambar Cover</label>
           <input type="file" accept="image/*" onChange={handleUpload} className="w-full p-2 rounded bg-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-yellow-400 file:text-black file:font-bold"/>
@@ -117,10 +123,18 @@ export default function KelolaBlogPage() {
         </div>
 
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Meta Description SEO 160 karakter" maxLength={160} value={form.meta_description} onChange={e=>setForm({...form, meta_description: e.target.value})} />
-        
+
         <div className="flex gap-4 items-center">
-          <select className="w-full p-2 rounded bg-gray-700 outline-none" value={form.kategori} onChange={e=>setForm({...form, kategori: e.target.value})}>
-            <option>Tips</option><option>Otomotif</option><option>Properti</option><option>Berita</option>
+          {/* FIX: VALUE UDAH JADI ANGKA + PARSEINT */}
+          <select
+            className="w-full p-2 rounded bg-gray-700 outline-none"
+            value={form.kategori}
+            onChange={e=>setForm({...form, kategori: parseInt(e.target.value)})}
+          >
+            <option value={1}>Tips</option>
+            <option value={2}>Otomotif</option>
+            <option value={3}>Properti</option>
+            <option value={4}>Berita</option>
           </select>
           <label className="flex items-center gap-2 whitespace-nowrap">
             <input type="checkbox" checked={form.is_sponsored} onChange={e=>setForm({...form, is_sponsored: e.target.checked})} />
@@ -150,14 +164,14 @@ export default function KelolaBlogPage() {
       {loading? <p>Loading...</p> : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead><tr className="border-b border-gray-700"><th className="p-2">Judul</th><th className="p-2">Slug</th><th className="p-2">Kategori</th><th className="p-2">Status</th></tr></thead> {/* TAMBAH SLUG */}
+            <thead><tr className="border-b border-gray-700"><th className="p-2">Judul</th><th className="p-2">Slug</th><th className="p-2">Kategori ID</th><th className="p-2">Status</th></tr></thead>
             <tbody>
               {blogs.length === 0? (<tr><td colSpan={4} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>) :
               blogs.map(b => (
                 <tr key={b.id} className="border-b border-gray-800 hover:bg-gray-800">
                   <td className="p-2">{b.judul}</td>
-                  <td className="p-2 text-xs text-gray-400">{b.slug}</td> {/* TAMPILIN SLUG */}
-                  <td className="p-2">{b.kategori}</td>
+                  <td className="p-2 text-xs text-gray-400">{b.slug}</td>
+                  <td className="p-2">{b.kategori}</td> {/* ini sekarang angka */}
                   <td className="p-2">
                     <span className={`px-2 py-1 rounded text-xs ${b.status === 'published'? 'bg-green-600' : 'bg-yellow-600'}`}>
                       {b.status}
