@@ -17,7 +17,7 @@ export default function KelolaBlogPage() {
     slug: "",
     konten: "",
     gambar_cover: "",
-    kategori: 1, // FIX: GANTI JADI ANGKA 1 = Tips
+    kategori_id: 1, // FIX 1: GANTI NAMA
     meta_description: "",
     is_sponsored: false,
     wa_endorse: "",
@@ -46,7 +46,6 @@ export default function KelolaBlogPage() {
     setLoading(false)
   }
 
-  // AUTO GENERATE SLUG DARI JUDUL
   const generateSlug = (text) => {
     return text.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
   }
@@ -55,7 +54,6 @@ export default function KelolaBlogPage() {
     setForm({...form, judul, slug: generateSlug(judul)})
   }
 
-  // UPLOAD GAMBAR COVER
   const handleUpload = async (e) => {
     const file = e.target.files[0]
     if(!file) return;
@@ -71,7 +69,6 @@ export default function KelolaBlogPage() {
     setUploading(false)
   }
 
-  // UPLOAD BANNER IKLAN
   const handleUploadBanner = async (e) => {
     const file = e.target.files[0]
     if(!file) return;
@@ -94,13 +91,15 @@ export default function KelolaBlogPage() {
     try {
       await axios.post(`${API_URL}/blog/`, form, { headers: {Authorization: `Bearer ${token}`} })
       alert("Blog berhasil disimpan sebagai Draft!")
-      setForm({judul: "", slug: "", konten: "", gambar_cover: "", kategori: 1, meta_description: "", is_sponsored: false, wa_endorse: "", banner_iklan: ""}) // FIX: reset jadi 1
+      setForm({judul: "", slug: "", konten: "", gambar_cover: "", kategori_id: 1, meta_description: "", is_sponsored: false, wa_endorse: "", banner_iklan: ""}) // FIX 2: RESET
       fetchBlogs()
     } catch (err) {
       if(err.response?.status === 409) alert("Gagal. Slug ini sudah dipakai. Ganti judul")
-      else if(err.response?.status === 422) alert("Gagal. Ada data yg salah. Cek Kategori")
+      else if(err.response?.status === 422) {
+        alert("Gagal. Ada data yg salah")
+        console.log("DETAIL ERROR:", err.response?.data) // biar keliatan detailnya
+      }
       else alert("Gagal publish blog. Cek console")
-      console.log(err.response?.data) // ini penting buat debug
     }
   }
 
@@ -110,9 +109,7 @@ export default function KelolaBlogPage() {
 
       <form onSubmit={handleSubmit} className="bg-gray-800 p-4 rounded-lg mb-6 space-y-3">
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Judul Artikel" value={form.judul} onChange={handleJudulChange} required />
-
         <input className="w-full p-2 rounded bg-gray-700 outline-none text-sm text-yellow-300" placeholder="URL Slug. Otomatis dari judul" value={form.slug} onChange={e=>setForm({...form, slug: e.target.value})} required />
-
         <textarea className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Isi Artikel Otomotif & Properti" rows={8} value={form.konten} onChange={e=>setForm({...form, konten: e.target.value})} required />
 
         <div>
@@ -125,11 +122,10 @@ export default function KelolaBlogPage() {
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Meta Description SEO 160 karakter" maxLength={160} value={form.meta_description} onChange={e=>setForm({...form, meta_description: e.target.value})} />
 
         <div className="flex gap-4 items-center">
-          {/* FIX: VALUE UDAH JADI ANGKA + PARSEINT */}
           <select
             className="w-full p-2 rounded bg-gray-700 outline-none"
-            value={form.kategori}
-            onChange={e=>setForm({...form, kategori: parseInt(e.target.value)})}
+            value={form.kategori_id} // FIX 3: GANTI
+            onChange={e=>setForm({...form, kategori_id: parseInt(e.target.value)})} // FIX 4: GANTI
           >
             <option value={1}>Tips</option>
             <option value={2}>Otomotif</option>
@@ -159,7 +155,6 @@ export default function KelolaBlogPage() {
         </button>
       </form>
 
-      {/* TABEL */}
       <h2 className="text-xl font-bold mb-2">Daftar Artikel</h2>
       {loading? <p>Loading...</p> : (
         <div className="overflow-x-auto">
@@ -171,7 +166,7 @@ export default function KelolaBlogPage() {
                 <tr key={b.id} className="border-b border-gray-800 hover:bg-gray-800">
                   <td className="p-2">{b.judul}</td>
                   <td className="p-2 text-xs text-gray-400">{b.slug}</td>
-                  <td className="p-2">{b.kategori}</td> {/* ini sekarang angka */}
+                  <td className="p-2">{b.kategori_id || b.kategori}</td>
                   <td className="p-2">
                     <span className={`px-2 py-1 rounded text-xs ${b.status === 'published'? 'bg-green-600' : 'bg-yellow-600'}`}>
                       {b.status}
