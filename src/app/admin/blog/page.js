@@ -13,16 +13,9 @@ export default function KelolaBlogPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [form, setForm] = useState({
-    judul: "",
-    konten: "",
-    gambar_cover: "",
-    kategori: "Tips",
-    meta_description: "",
-    is_sponsored: false,
-    nama_pengiklan: "",
-    link_pengiklan: "",
-    banner_iklan: "",
-    penulis: "Admin"
+    judul: "", konten: "", gambar_cover: "", kategori: "Tips",
+    meta_description: "", is_sponsored: false, nama_pengiklan: "",
+    link_pengiklan: "", banner_iklan: "", penulis: "Admin"
   })
   const [token, setToken] = useState("")
   const router = useRouter()
@@ -80,34 +73,49 @@ export default function KelolaBlogPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if(!form.judul ||!form.konten) return alert("Judul dan Konten wajib diisi")
-
-    // BODY DISESUAIKAN 100% SAMA DB
     const body = {
-      judul: form.judul,
-      konten: form.konten,
-      kategori: form.kategori,
-      gambar_cover: form.gambar_cover || "",
-      meta_description: form.meta_description || "",
-      is_sponsored: form.is_sponsored? 1 : 0, // DB lu tinyint(1)
+      judul: form.judul, konten: form.konten, kategori: form.kategori,
+      gambar_cover: form.gambar_cover || "", meta_description: form.meta_description || "",
+      is_sponsored: form.is_sponsored? 1 : 0,
       nama_pengiklan: form.nama_pengiklan || "",
       link_pengiklan: form.is_sponsored && form.nama_pengiklan? `https://wa.me/${form.nama_pengiklan}` : "",
-      banner_iklan: form.banner_iklan || "",
-      penulis: form.penulis,
-      status: "draft",
-      slug: "" // KIRIM KOSONG, BIAR BE GENERATE
+      banner_iklan: form.banner_iklan || "", penulis: form.penulis,
+      status: "draft", slug: ""
     }
-
-    console.log("BODY YANG DIKIRIM:", body)
-
     try {
       await axios.post(`${API_URL}/blog/`, body, { headers: {Authorization: `Bearer ${token}`} })
       alert("Blog berhasil disimpan sebagai Draft!")
       setForm({judul: "", konten: "", gambar_cover: "", kategori: "Tips", meta_description: "", is_sponsored: false, nama_pengiklan: "", link_pengiklan: "", banner_iklan: "", penulis: "Admin"})
       fetchBlogs()
     } catch (err) {
-      console.log("DETAIL ERROR:", err.response?.data)
-      // KALAU DI HP GAK ADA CONSOLE, PAKE INI BIAR KELUAR ERRORNYA
       alert(JSON.stringify(err.response?.data, null, 2))
+    }
+  }
+
+  // TAMBAHAN: FUNGSI APPROVE
+  const handlePublish = async (id) => {
+    if(!confirm("Yakin mau publish artikel ini?")) return;
+    try {
+      await axios.put(`${API_URL}/blog/${id}`,
+        { status: "published" },
+        { headers: {Authorization: `Bearer ${token}`} }
+      )
+      alert("Artikel berhasil dipublish!")
+      fetchBlogs()
+    } catch(err) {
+      alert("Gagal publish: " + JSON.stringify(err.response?.data))
+    }
+  }
+
+  // TAMBAHAN: FUNGSI DELETE
+  const handleDelete = async (id) => {
+    if(!confirm("Yakin mau hapus artikel ini?")) return;
+    try {
+      await axios.delete(`${API_URL}/blog/${id}`, { headers: {Authorization: `Bearer ${token}`} })
+      alert("Artikel dihapus")
+      fetchBlogs()
+    } catch(err) {
+      alert("Gagal hapus")
     }
   }
 
@@ -129,11 +137,7 @@ export default function KelolaBlogPage() {
         <input className="w-full p-2 rounded bg-gray-700 outline-none" placeholder="Meta Description SEO 160 karakter" maxLength={160} value={form.meta_description} onChange={e=>setForm({...form, meta_description: e.target.value})} />
 
         <div className="flex gap-4 items-center">
-          <select
-            className="w-full p-2 rounded bg-gray-700 outline-none"
-            value={form.kategori}
-            onChange={e=>setForm({...form, kategori: e.target.value})}
-          >
+          <select className="w-full p-2 rounded bg-gray-700 outline-none" value={form.kategori} onChange={e=>setForm({...form, kategori: e.target.value})}>
             <option value="Tips">Tips</option>
             <option value="Otomotif">Otomotif</option>
             <option value="Properti">Properti</option>
@@ -166,17 +170,40 @@ export default function KelolaBlogPage() {
       {loading? <p>Loading...</p> : (
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead><tr className="border-b border-gray-700"><th className="p-2">Judul</th><th className="p-2">Kategori</th><th className="p-2">Status</th></tr></thead>
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="p-2">Judul</th>
+                <th className="p-2">Kategori</th>
+                <th className="p-2">Status</th>
+                <th className="p-2">Aksi</th> {/* TAMBAH KOLOM AKSI */}
+              </tr>
+            </thead>
             <tbody>
-              {blogs.length === 0? (<tr><td colSpan={3} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>) :
+              {blogs.length === 0? (<tr><td colSpan={4} className="p-2 text-gray-400">Belum ada artikel. Publish yg pertama!</td></tr>) :
               blogs.map(b => (
                 <tr key={b.id} className="border-b border-gray-800 hover:bg-gray-800">
                   <td className="p-2">{b.judul}</td>
                   <td className="p-2">{b.kategori}</td>
                   <td className="p-2">
-                    <span className={`px-2 py-1 rounded text-xs ${b.status === 'published'? 'bg-green-600' : 'bg-yellow-600'}`}>
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${b.status === 'published'? 'bg-green-600' : 'bg-yellow-600'}`}>
                       {b.status}
                     </span>
+                  </td>
+                  <td className="p-2 flex gap-2">
+                    {b.status === 'draft' && (
+                      <button
+                        onClick={() => handlePublish(b.id)}
+                        className="bg-green-600 px-3 py-1 rounded text-xs font-bold hover:bg-green-700"
+                      >
+                        Approve
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(b.id)}
+                      className="bg-red-600 px-3 py-1 rounded text-xs font-bold hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
