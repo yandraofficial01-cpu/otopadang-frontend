@@ -16,7 +16,8 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    axios.get(`${API_URL}/blog`) // endpoint public, cuma ambil yg status=published
+    // FIX: TAMBAH / DI AKHIR
+    axios.get(`${API_URL}/blog/`) // endpoint public, cuma ambil yg status=published
       .then(res => {
         setArticles(res.data)
         setLoading(false)
