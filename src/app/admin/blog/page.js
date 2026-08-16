@@ -31,11 +31,16 @@ export default function KelolaBlogPage() {
   const fetchBlogs = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${API_URL}/blog/admin`, { headers: {Authorization: `Bearer ${token}`} })
+      // FIX 1: /admin/blog
+      const res = await axios.get(`${API_URL}/admin/blog`, { headers: {Authorization: `Bearer ${token}`} })
       setBlogs(res.data)
     } catch (err) {
-      alert("Gagal ambil data blog. Token kadaluarsa")
-      router.push("/login-admin")
+      if (err.response?.status === 401) {
+        alert("Token kadaluarsa. Silakan login ulang")
+        router.push("/login-admin")
+      } else {
+        alert("Gagal ambil data blog: " + err.response?.data?.detail)
+      }
     }
     setLoading(false)
   }
@@ -83,7 +88,8 @@ export default function KelolaBlogPage() {
       status: "draft", slug: ""
     }
     try {
-      await axios.post(`${API_URL}/blog/`, body, { headers: {Authorization: `Bearer ${token}`} })
+      // FIX 2: /admin/blog
+      await axios.post(`${API_URL}/admin/blog`, body, { headers: {Authorization: `Bearer ${token}`} })
       alert("Blog berhasil disimpan sebagai Draft!")
       setForm({judul: "", konten: "", gambar_cover: "", kategori: "Tips", meta_description: "", is_sponsored: false, nama_pengiklan: "", link_pengiklan: "", banner_iklan: "", penulis: "Admin"})
       fetchBlogs()
@@ -92,12 +98,12 @@ export default function KelolaBlogPage() {
     }
   }
 
-  // FIX: TAMBAH /publish
   const handlePublish = async (id) => {
     if(!confirm("Yakin mau publish artikel ini?")) return;
     try {
-      await axios.put(`${API_URL}/blog/${id}/publish`, // <-- INI YG BENER
-        {}, // body kosong
+      // FIX 3: /admin/blog/{id}/publish
+      await axios.put(`${API_URL}/admin/blog/${id}/publish`,
+        {}, 
         { headers: {Authorization: `Bearer ${token}`} }
       )
       alert("Artikel berhasil dipublish!")
@@ -110,7 +116,8 @@ export default function KelolaBlogPage() {
   const handleDelete = async (id) => {
     if(!confirm("Yakin mau hapus artikel ini?")) return;
     try {
-      await axios.delete(`${API_URL}/blog/${id}`, { headers: {Authorization: `Bearer ${token}`} })
+      // FIX 4: /admin/blog/{id}
+      await axios.delete(`${API_URL}/admin/blog/${id}`, { headers: {Authorization: `Bearer ${token}`} })
       alert("Artikel dihapus")
       fetchBlogs()
     } catch(err) {
