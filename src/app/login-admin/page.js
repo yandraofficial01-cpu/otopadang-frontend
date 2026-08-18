@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 const API_URL = 'https://otopadang-api.up.railway.app'
 
-export default function LoginShowroomPage() {
+export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,11 +17,11 @@ export default function LoginShowroomPage() {
     localStorage.removeItem('email')
     localStorage.removeItem('showroom_id')
     document.cookie = "token=; path=/; max-age=0"
-    alert('Sudah logout, sekarang login lagi sebagai showroom')
+    alert('Sudah logout, sekarang login lagi sebagai admin')
     window.location.reload()
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     try {
@@ -35,7 +35,7 @@ export default function LoginShowroomPage() {
       console.log('RESPONSE FULL:', data)
 
       if(!res.ok){
-        alert('Login gagal: ' + (data.detail || 'Email atau password salah'))
+        alert('Login gagal: ' + (data.detail || JSON.stringify(data)))
         setLoading(false)
         return
       }
@@ -53,21 +53,10 @@ export default function LoginShowroomPage() {
         return
       }
 
-      // BLOKIR ADMIN
-      if(userRole === 'admin'){
-        alert('AKUN ADMIN TIDAK BOLEH MASUK SINI! Redirect ke login admin')
-        window.location.href = '/login-admin'
-        return
-      }
-
-      if(userRole !== 'showroom'){
+      // CEK ROLE AJA, LEBIH AMAN
+      if(userRole !== 'admin'){
         alert(`Akses ditolak! Role kamu: ${userRole}`)
-        setLoading(false)
-        return
-      }
-
-      if(!showroomId){
-        alert('Error: Akun showroom tidak punya showroom_id')
+        if(userRole === 'showroom') window.location.href = '/login-showroom'
         setLoading(false)
         return
       }
@@ -75,19 +64,18 @@ export default function LoginShowroomPage() {
       // Simpen data penting
       localStorage.setItem('token', accessToken)
       localStorage.setItem('access_token', accessToken)
-      localStorage.setItem('role', 'showroom')
+      localStorage.setItem('role', 'admin')
       localStorage.setItem('email', user.email || email)
-      localStorage.setItem('showroom_id', showroomId)
       
       // Cookie penting buat middleware Next.js
       document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
 
       // Kasih jeda 300ms biar cookie ke-save dulu
       setTimeout(() => {
-        window.location.replace(`/showroom-input/${showroomId}`)
+        window.location.replace('/admin')
       }, 300)
       
-    } catch (error: any) {
+    } catch (error) {
       console.error(error)
       alert('Server error: ' + error.message)
       setLoading(false)
@@ -97,14 +85,14 @@ export default function LoginShowroomPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
       <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
-        <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Showroom</h1>
+        <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin</h1>
         
         <input 
           type="email" 
-          placeholder="Email Showroom" 
+          placeholder="Email Admin" 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white" 
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white" 
           required 
         />
         <input 
@@ -120,7 +108,7 @@ export default function LoginShowroomPage() {
           disabled={loading} 
           className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50"
         >
-          {loading ? 'Loading...' : 'Masuk sebagai Showroom'}
+          {loading ? 'Loading...' : 'Masuk sebagai Admin'}
         </button>
 
         <button 
@@ -132,7 +120,7 @@ export default function LoginShowroomPage() {
         </button>
         
         <p className="text-center text-sm text-gray-500 mt-6">
-          Admin? <Link href="/login-admin" className="text-yellow-400">Login Admin</Link>
+          Bukan admin? <Link href="/login-showroom" className="text-yellow-400">Login Showroom</Link>
         </p>
       </form>
     </div>
