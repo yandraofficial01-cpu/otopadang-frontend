@@ -18,10 +18,12 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const fetchWithTimeout = async (url, t, timeout = 8000) => {
+  // NAEKIN JADI 20 DETIK + ADA LOG
+  const fetchWithTimeout = async (url, t, timeout = 20000) => {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeout)
     try {
+      console.log("FETCHING:", url)
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${t}` },
         signal: controller.signal
@@ -34,37 +36,46 @@ export default function AdminPage() {
       return await res.json()
     } catch(e) {
       clearTimeout(id)
+      console.error("ERROR FETCH:", e.message)
       throw e
     }
   }
 
+  // ADA RETRY 1X BUAT BANGUNIN RAILWAY
   const fetchData = useCallback(async (t) => {
     setLoading(true)
     setError('')
-    const safetyTimer = setTimeout(() => setLoading(false), 9000)
+    const safetyTimer = setTimeout(() => setLoading(false), 22000)
 
     try {
       let mobil = [], showroom = [], rumah = [], blog = []
 
-      try { mobil = await fetchWithTimeout(`${API_URL}/admin/mobil`, t) }
-      catch(e){ console.log('Mobil error:', e.message) }
+      const fetchRetry = async (endpoint, name) => {
+        try { return await fetchWithTimeout(`${API_URL}${endpoint}`, t) }
+        catch(e1){
+          console.log(`${name} gagal 1x, retry dalam 2 detik...`)
+          await new Promise(r => setTimeout(r, 2000))
+          try { return await fetchWithTimeout(`${API_URL}${endpoint}`, t) }
+          catch(e2){
+            console.log(`${name} gagal 2x:`, e2.message)
+            setError(prev => prev + ` | ${name}: ${e2.message}`)
+            return []
+          }
+        }
+      }
 
-      try { showroom = await fetchWithTimeout(`${API_URL}/admin/showroom`, t) }
-      catch(e){ console.log('Showroom error:', e.message) }
-
-      try { rumah = await fetchWithTimeout(`${API_URL}/admin/rumah`, t) }
-      catch(e){ console.log('Rumah error:', e.message) }
-
-      try { blog = await fetchWithTimeout(`${API_URL}/admin/blog`, t) }
-      catch(e){ console.log('Blog error (skip):', e.message); blog = [] }
+      mobil = await fetchRetry('/admin/mobil', 'Mobil')
+      showroom = await fetchRetry('/admin/showroom', 'Showroom')
+      rumah = await fetchRetry('/admin/rumah', 'Rumah')
+      blog = await fetchRetry('/admin/blog', 'Blog')
 
       setAllMobil(Array.isArray(mobil)? mobil : [])
       setShowrooms(Array.isArray(showroom)? showroom : [])
       setAllRumah(Array.isArray(rumah)? rumah : [])
       setAllBlog(Array.isArray(blog)? blog : [])
 
-      if(!mobil.length &&!showroom.length) {
-        setError('Railway sleep / tidak merespon - data 0. Refresh lagi 30 detik.')
+      if(!mobil.length &&!showroom.length &&!rumah.length) {
+        setError('Data masih 0. Cek: 1. Role admin 2. Railway lagi bangun. Pencet Refresh 1x lagi')
       }
 
     } catch (err) {
@@ -158,14 +169,13 @@ export default function AdminPage() {
     <div className="bg-[#0B0B0F] min-h-screen flex flex-col items-center justify-center gap-4 text-white">
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
       <p className="animate-pulse font-semibold">Loading Panel Admin...</p>
-      <p className="text-xs text-gray-500">Menghubungi Railway... max 9 detik</p>
+      <p className="text-xs text-gray-500">Bangunin Railway... max 22 detik</p>
       <button onClick={handleLogout} className="mt-4 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2"><LogOut size={18}/> Force Logout</button>
     </div>
   )
 
   const mobilPending = allMobil.filter(m => m.status === 'pending')
   const mobilApproved = allMobil.filter(m => m.status === 'approved')
-
   const rumahAktif = allRumah.filter(r => r.status!== 'terjual')
 
   const StatusBadge = ({status}) => {
@@ -190,7 +200,7 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>window.location.reload()} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
+      {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>fetchData(token)} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
@@ -213,7 +223,7 @@ export default function AdminPage() {
       </div>
 
       {/* MOBIL PENDING */}
-      <div className="mb-8 p-6 border border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent">
+      <div className="mb-8 p-6 border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><Flame size={20}/> Review Mobil Baru ({mobilPending.length})</h2>
         {mobilPending.length === 0? <p className="text-gray-500">Tidak ada mobil baru - Total di DB: {allMobil.length}</p> :
           mobilPending.slice(0, 10).map(m => (
@@ -294,10 +304,10 @@ export default function AdminPage() {
       {/* MENU */}
       <h2 className="text-xl font-bold mb-4">Menu Lainnya</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/admin/upload-rumah" className="p-4 border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
+        <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
         <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
         <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
-        <Link href="/admin/approve-showroom" className="p-4 border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
+        <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
       </div>
     </div>
   )
