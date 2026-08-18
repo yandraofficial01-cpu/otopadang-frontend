@@ -23,7 +23,7 @@ export default function Page() {
       const fd = new FormData()
       fd.append("file", file)
       fd.append("upload_preset", UPLOAD_PRESET)
-      fd.append("folder", "otopadang")
+      fd.append("folder", "otopadang/rumah") // <--- aku tambahin /rumah biar rapi di cloudinary
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd })
       const data = await res.json()
       if(data.secure_url){
@@ -42,7 +42,7 @@ export default function Page() {
     setLoading(true)
     try {
       const payload = {
-       ...form,
+      ...form,
         harga: parseInt(form.harga) || 0,
         harga_kredit: parseInt(form.harga_kredit) || parseInt(form.harga) || 0,
         angsuran: parseInt(form.angsuran) || 0,
@@ -50,7 +50,7 @@ export default function Page() {
         luas_tanah: parseInt(form.luas_tanah) || 0,
         luas_bangunan: parseInt(form.luas_bangunan) || 0,
       }
-      const res = await fetch(`${API}/admin/upload-rumah`, {
+      const res = await fetch(`${API}/admin/rumah/`, { // <--- INI YG DIGANTI. ADA / DI AKHIR
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: JSON.stringify(payload)
@@ -84,7 +84,7 @@ export default function Page() {
         </div>
         <div>
           <label className="text-sm text-gray-400">Alamat</label>
-          <input value={form.alamat} onChange={e=>setForm({...form, alamat: e.target.value})} placeholder="Koto Tangah, Padang..." className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" />
+          <input value={form.alamat} onChange={e=>setForm({...form, alamat: e.target.value})} placeholder="Koto Tangah, Padang..." className="w-full mt-1 bg-[#2a2a2a] border-gray-700 rounded-xl p-4 outline-none" />
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div><label className="text-xs text-gray-400">Harga Cash *</label><input type="number" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} className="w-full mt-1 bg-[#2a2a2a] border border-gray-700 rounded-xl p-4 outline-none" /></div>
@@ -100,7 +100,7 @@ export default function Page() {
           <label className="text-sm text-yellow-400 font-bold">Foto Rumah (Tap upload, auto Cloudinary)</label>
           <div className="grid grid-cols-2 gap-3 mt-3">
             {[1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className="bg-[#2a2a2a] border border-gray-700 rounded-xl p-3">
+              <div key={i} className="bg-[#2a2a2a] border-gray-700 rounded-xl p-3">
                 <p className="text-[11px] text-gray-400 mb-2">Foto {i} {i==1?'(Cover)':''}</p>
                 {form[`foto_url_${i}`]? (
                   <div className="space-y-2">
