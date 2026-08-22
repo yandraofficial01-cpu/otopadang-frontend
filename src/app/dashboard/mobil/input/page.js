@@ -11,13 +11,19 @@ export default function InputMobilPage() {
   const [uploading, setUploading] = useState({})
   const [form, setForm] = useState({
     nama_mobil: "", merek: "", tipe: "", tahun: "", kilometer: "",
-    transmisi: "Manual", bahan_bakar: "Bensin", // DEFAULT BENSIN
-    harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "", // FIX: dp -> angsuran
+    transmisi: "Manual", bahan_bakar: "Bensin",
+    harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "",
     lokasi: "", deskripsi: "", no_wa_showroom: "",
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
   })
   const router = useRouter()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token') // HAPUS TOKEN
+    alert("Logout berhasil")
+    router.push('/login') // BALIK KE LOGIN
+  }
 
   const uploadToCloudinary = async (file, index) => {
     setUploading(prev => ({...prev, [index]: true}))
@@ -45,11 +51,11 @@ export default function InputMobilPage() {
     if(!token) return alert("Lu belum login bro")
 
     const payload = {
-     ...form,
+    ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
-      angsuran: Number(form.angsuran) || 0, // FIX: dp -> angsuran
+      angsuran: Number(form.angsuran) || 0,
       kilometer: Number(form.kilometer) || 0,
       lama_angsuran: Number(form.lama_angsuran) || 0,
     }
@@ -77,7 +83,18 @@ export default function InputMobilPage() {
 
   return (
     <div className="p-6 bg-black text-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-4 text-yellow-400">Input Mobil Baru</h1>
+      
+      {/* HEADER + LOGOUT */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-yellow-400">Input Mobil Baru</h1>
+        <button 
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-bold"
+        >
+          Logout
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-2xl">
 
         <input name="nama_mobil" placeholder="Nama Mobil: Avanza G 2022" value={form.nama_mobil} onChange={e=>setForm({...form, nama_mobil: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
@@ -86,25 +103,11 @@ export default function InputMobilPage() {
         <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={e=>setForm({...form, tahun: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
         <input name="kilometer" type="number" placeholder="KM" value={form.kilometer} onChange={e=>setForm({...form, kilometer: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
-        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white">
-          <option>Manual</option>
-          <option>Automatic</option>
-          <option>CVT</option>
-        </select>
-
-        {/* TAMBAH OPSI BAHAN BAKAR */}
-        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white">
-          <option>Bensin</option>
-          <option>Solar</option>
-          <option>Hybrid</option>
-          <option>Listrik</option>
-        </select>
+        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Manual</option><option>Automatic</option><option>CVT</option></select>
+        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Bensin</option><option>Solar</option><option>Hybrid</option><option>Listrik</option></select>
 
         <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
-
-        {/* FIX: name="dp" -> name="angsuran" */}
         <input name="angsuran" type="number" placeholder="Angsuran/Bulan" value={form.angsuran} onChange={e=>setForm({...form, angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
-
         <input name="harga_kredit" type="number" placeholder="Harga Kredit" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
         <input name="lama_angsuran" type="number" placeholder="Tenor Bulan" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
