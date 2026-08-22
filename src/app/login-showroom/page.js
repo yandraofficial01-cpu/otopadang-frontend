@@ -23,20 +23,28 @@ export default function LoginShowroomPage() {
       const data = await res.json()
 
       if(res.ok){
-        const user = data.user // <-- INI KUNCINYA
+        const user = data.user
         
         console.log("DATA USER:", user) // buat debug
 
+        // 1. Simpan ke localStorage buat dipake di FE
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('role', user.role)
         localStorage.setItem('showroom_id', user.showroom_id)
         localStorage.setItem('email', user.email)
 
+        // 2. PENTING: Simpan ke cookie biar kebaca middleware
+        document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+
         if(user.role !== 'showroom'){
           alert('Akun ini bukan showroom')
           localStorage.clear()
+          // hapus cookie juga
+          document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
           return
         }
+        
+        alert('Login berhasil!')
         router.push('/dashboard/mobil/input')
       } else {
         if(res.status === 403 && data.detail?.hubungi_admin){
@@ -56,7 +64,7 @@ export default function LoginShowroomPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
         <h1 className="text-3xl font-bold text-white mb-6 text-center">Login Showroom</h1>
         
         <input 
@@ -72,11 +80,15 @@ export default function LoginShowroomPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
+          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
           required
         />
         
-        <button disabled={loading} className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50">
+        <button 
+          type="submit"
+          disabled={loading} 
+          className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50"
+        >
           {loading ? 'Loading...' : 'Masuk sebagai Showroom'}
         </button>
         
