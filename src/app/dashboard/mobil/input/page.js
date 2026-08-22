@@ -11,8 +11,8 @@ export default function InputMobilPage() {
   const [uploading, setUploading] = useState({})
   const [form, setForm] = useState({
     nama_mobil: "", merek: "", tipe: "", tahun: "", kilometer: "",
-    transmisi: "Manual", bahan_bakar: "Bensin",
-    harga: "", harga_kredit: "", dp: "", lama_angsuran: "",
+    transmisi: "Manual", bahan_bakar: "Bensin", // DEFAULT BENSIN
+    harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "", // FIX: dp -> angsuran
     lokasi: "", deskripsi: "", no_wa_showroom: "",
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
@@ -49,17 +49,17 @@ export default function InputMobilPage() {
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
-      dp: Number(form.dp) || 0,
+      angsuran: Number(form.angsuran) || 0, // FIX: dp -> angsuran
       kilometer: Number(form.kilometer) || 0,
       lama_angsuran: Number(form.lama_angsuran) || 0,
     }
 
     try {
-      const res = await fetch(`${API}/cars/`, { // FIX: /mobil/ -> /cars/
+      const res = await fetch(`${API}/cars/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // INI UDAH BENER
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       })
@@ -86,11 +86,25 @@ export default function InputMobilPage() {
         <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={e=>setForm({...form, tahun: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
         <input name="kilometer" type="number" placeholder="KM" value={form.kilometer} onChange={e=>setForm({...form, kilometer: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
-        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Manual</option><option>Automatic</option></select>
-        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"><option>Bensin</option><option>Solar</option></select>
+        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white">
+          <option>Manual</option>
+          <option>Automatic</option>
+          <option>CVT</option>
+        </select>
+
+        {/* TAMBAH OPSI BAHAN BAKAR */}
+        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white">
+          <option>Bensin</option>
+          <option>Solar</option>
+          <option>Hybrid</option>
+          <option>Listrik</option>
+        </select>
 
         <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
-        <input name="dp" type="number" placeholder="DP" value={form.dp} onChange={e=>setForm({...form, dp: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+
+        {/* FIX: name="dp" -> name="angsuran" */}
+        <input name="angsuran" type="number" placeholder="Angsuran/Bulan" value={form.angsuran} onChange={e=>setForm({...form, angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
+
         <input name="harga_kredit" type="number" placeholder="Harga Kredit" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
         <input name="lama_angsuran" type="number" placeholder="Tenor Bulan" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="p-2 border bg-[#1a1a1a] border-gray-700 rounded text-white"/>
 
