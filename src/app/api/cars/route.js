@@ -9,11 +9,11 @@ export async function POST(request) {
     return NextResponse.json({ detail: "Token tidak ada" }, { status: 401 })
   }
 
-  const res = await fetch('https://otopadang-api.up.railway.app/mobil', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mobil`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': token // <- ini udah bener "Bearer xxx"
+      'Authorization': token // ini udah bener "Bearer xxx"
     },
     body: JSON.stringify(body)
   })
