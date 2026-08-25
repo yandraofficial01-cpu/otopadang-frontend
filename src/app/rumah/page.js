@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
 
-const API_URL = "https://otopadang-api.up.railway.app";
+const API_URL = "https://otopadang-api.vercel.app"; // <-- UDAH VERCEL
 
 // LIST RESMI LENGKAP 19 KAB/KOTA SUMBAR
 const DAERAH_SUMBAR = [
@@ -14,23 +14,40 @@ const DAERAH_SUMBAR = [
 // RANGE HARGA UDAH FIX SEMUA NOL NYA
 const RANGE_HARGA = [
   { label: "Semua Harga", min: 0, max: Infinity },
-  { label: "100 Juta - 200 Juta", min: 100000, max: 200000 },
-  { label: "200 Juta - 300 Juta", min: 200000, max: 300000 },
-  { label: "300 Juta - 400 Juta", min: 300000, max: 400000 },
-  { label: "400 Juta - 500 Juta", min: 400000, max: 500000 },
+  { label: "100 Juta - 200 Juta", min: 100000000, max: 200000000 },
+  { label: "200 Juta - 300 Juta", min: 200000, max: 300000000 },
+  { label: "300 Juta - 400 Juta", min: 300000000, max: 400000000 },
+  { label: "400 Juta - 500 Juta", min: 400000000, max: 500000000 },
   { label: "500 Juta - 600 Juta", min: 500000, max: 600000 },
   { label: "600 Juta - 700 Juta", min: 600000, max: 700000 },
   { label: "700 Juta - 800 Juta", min: 700000, max: 800000 },
-  { label: "800 Juta - 900 Juta", min: 800000, max: 900000 },
-  { label: "900 Juta - 1 Miliar", min: 900000, max: 1000000 },
-  { label: "Di atas 1 Miliar", min: 1000000000, max: Infinity },
+  { label: "800 Juta - 900 Juta", min: 800000000, max: 900000000 },
+  { label: "900 Juta - 1 Miliar", min: 900000, max: 1000000000 },
+  { label: "Di atas 1 Miliar", min: 1000000, max: Infinity },
 ];
 
 function ImageSlider({ images }) {
   const [current, setCurrent] = useState(0);
-  const prev = (e) => { e.stopPropagation(); setCurrent(current === 0? images.length - 1 : current - 1); };
-  const next = (e) => { e.stopPropagation(); setCurrent(current === images.length - 1? 0 : current + 1); };
-  return ( <div className="relative overflow-hidden"><img src={images[current] || 'https://placehold.co/600x400'} alt="" className="w-full h-48 object-cover group-hover:scale-110 transition duration-500" />{images.length > 1 && (<><button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">‹</button><button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">›</button><div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">{images.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === current? 'bg-yellow-400' : 'bg-white/50'}`}></div>)}</div></>)}</div> )
+  const validImages = images.filter(Boolean);
+  if (validImages.length === 0) {
+    validImages.push('https://placehold.co/600x400?text=No+Image');
+  }
+  const prev = (e) => { e.stopPropagation(); setCurrent(current === 0? validImages.length - 1 : current - 1); };
+  const next = (e) => { e.stopPropagation(); setCurrent(current === validImages.length - 1? 0 : current + 1); };
+  return (
+    <div className="relative overflow-hidden">
+      <img src={validImages[current]} alt="" className="w-full h-48 object-cover group-hover:scale-110 transition duration-500" />
+      {validImages.length > 1 && (
+        <>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">‹</button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 active:scale-90">›</button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {validImages.map((_, i) => <div key={i} className={`w-2 h-2 rounded-full transition ${i === current? 'bg-yellow-400' : 'bg-white/50'}`}></div>)}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 export default function RumahPage() {
@@ -39,14 +56,15 @@ export default function RumahPage() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLokasi, setFilterLokasi] = useState("Semua Lokasi");
-  const [filterLokasiDetail, setFilterLokasiDetail] = useState(""); // UNTUK KEC/KEL
+  const [filterLokasiDetail, setFilterLokasiDetail] = useState("");
   const [filterHarga, setFilterHarga] = useState(RANGE_HARGA[0]);
 
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/rumah/`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/rumah/all-public`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const result = await res.json();
         const data = Array.isArray(result)? result : result.data || [];
         setRumahList(data);
@@ -57,17 +75,17 @@ export default function RumahPage() {
 
   const filteredRumah = useMemo(() => {
     return rumahList.filter(r => {
-      const matchSearch = r.nama_rumah.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchSearch = r.nama_rumah?.toLowerCase().includes(searchTerm.toLowerCase());
       const keywordLokasi = filterLokasi.replace("Kota ", "").replace("Kab. ", "").replace("Kabupaten ", "").replace("Kepulauan ", "").toLowerCase();
-      const matchLokasi = filterLokasi === "Semua Lokasi" || r.alamat.toLowerCase().includes(keywordLokasi);
-      const matchLokasiDetail = filterLokasiDetail === "" || r.alamat.toLowerCase().includes(filterLokasiDetail.toLowerCase()); // CARI KEC/KEL
-      const matchHarga = r.harga >= filterHarga.min && r.harga < filterHarga.max;
+      const matchLokasi = filterLokasi === "Semua Lokasi" || r.alamat?.toLowerCase().includes(keywordLokasi);
+      const matchLokasiDetail = filterLokasiDetail === "" || r.alamat?.toLowerCase().includes(filterLokasiDetail.toLowerCase());
+      const matchHarga = (r.harga || 0) >= filterHarga.min && (r.harga || 0) < filterHarga.max;
       return matchSearch && matchLokasi && matchLokasiDetail && matchHarga;
     });
   }, [rumahList, searchTerm, filterLokasi, filterLokasiDetail, filterHarga]);
 
   const pesanWA = (item) => {
-    const noWa = item.wa_number || "62812PUSAT";
+    const noWa = item.wa_number || "628979879518";
     const text = `Halo Otopadang, saya tertarik dengan ${item.nama_rumah} seharga Rp ${item.harga?.toLocaleString('id-ID')}. Apakah masih tersedia?`;
     window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(text)}`, '_blank');
   }
@@ -79,30 +97,27 @@ export default function RumahPage() {
         <p className="text-gray-400 text-lg">Cari rumah di seluruh Sumatera Barat. Sampai ke Kecamatan & Kelurahan.</p>
       </div>
 
-      {/* BOX FILTER 4 KOLOM */}
-      <div className="bg-[#1A1A1F] p-4 rounded-xl border border-gray-800 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
-        <input type="text" placeholder="Cari nama rumah..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[#0B0B0F] border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none" />
-
-        <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="bg-[#0B0B0F] border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none">
+      {/* BOX FILTER 4 KOLOM UDAH FIX GRID */}
+      <div className="bg-[#1A1A1F] p-4 rounded-xl border border-gray-800 mb-8 grid-cols-1 md:grid-cols-4 gap-4 animate-fade-in-up">
+        <input type="text" placeholder="Cari nama rumah..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none" />
+        <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none">
           {DAERAH_SUMBAR.map(lok => <option key={lok} value={lok}>{lok}</option>)}
         </select>
-
-        <input type="text" placeholder="Contoh: Kuranji, Air Pacah" value={filterLokasiDetail} onChange={(e) => setFilterLokasiDetail(e.target.value)} className="bg-[#0B0B0F] border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none" />
-
-        <select value={JSON.stringify(filterHarga)} onChange={(e) => setFilterHarga(JSON.parse(e.target.value))} className="bg-[#0B0B0F] border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none">
+        <input type="text" placeholder="Contoh: Kuranji, Air Pacah" value={filterLokasiDetail} onChange={(e) => setFilterLokasiDetail(e.target.value)} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none" />
+        <select value={JSON.stringify(filterHarga)} onChange={(e) => setFilterHarga(JSON.parse(e.target.value))} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 outline-none">
           {RANGE_HARGA.map(range => <option key={range.label} value={JSON.stringify(range)}>{range.label}</option>)}
         </select>
       </div>
 
       {loading && <p className="text-gray-400 text-center">Loading...</p>}
-      {error && <p className="text-red-500 text-center">Error: {error}</p>}
+      {error && <p className="text-red-500 text-center">Error: {error}. Pastikan BE sudah deploy endpoint /rumah/all-public</p>}
       {!loading && filteredRumah.length === 0 && <p className="text-gray-400 text-center">Rumah tidak ditemukan di {filterLokasi} {filterLokasiDetail && ` - ${filterLokasiDetail}`} dengan range {filterHarga.label}</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredRumah.map((r, i) => {
-          const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
+          const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5, r.foto_url_6, r.foto_url_7, r.foto_url_8];
           return (
-            <div key={r.id} style={{ animationDelay: `${i * 100}ms` }} className={`bg-[#1A1A1F] rounded-xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20 hover:-translate-y-2 hover:scale-[1.02] transition-all duration-500 group animate-fade-in-up`}>
+            <div key={r.id} style={{ animationDelay: `${i * 100}ms` }} className={`bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20 hover:-translate-y-2 hover:scale-[1.02] transition-all duration-500 group animate-fade-in-up`}>
               <ImageSlider images={images} />
               <div className="p-4">
                 <h3 className="font-bold text-lg text-white">{r.nama_rumah}</h3>
@@ -121,9 +136,9 @@ export default function RumahPage() {
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    .animate-fade-in-up { opacity: 0; animation: fadeInUp 0.6s ease-out forwards; }
-    .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
-    .animate-gradient-text { background: linear-gradient(90deg, #FACC15, #FFFFFF, #FACC15); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient 3s linear infinite; text-shadow: 0 0 20px rgba(250, 204, 21, 0.3); }
+       .animate-fade-in-up { opacity: 0; animation: fadeInUp 0.6s ease-out forwards; }
+       .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
+       .animate-gradient-text { background: linear-gradient(90deg, #FACC15, #FFFFFF, #FACC15); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient 3s linear infinite; text-shadow: 0 0 20px rgba(250, 204, 21, 0.3); }
       `}</style>
     </main>
   )
