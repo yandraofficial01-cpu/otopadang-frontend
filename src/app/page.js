@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-// Pake env biar fleksibel
+// Pake env biar fleksibel. Isi di Vercel: https://otopadang-api.vercel.app
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function ImageSlider({ images }) {
@@ -51,9 +51,10 @@ export default function HomePage() {
     const getData = async () => {
       setLoading(true); setError(null);
       try {
+        // INI YANG GUA BENERIN
         const [resMobil, resRumah] = await Promise.all([
-          fetch(`${API_URL}/mobil/all-public`, { cache: 'no-store' }), 
-          fetch(`${API_URL}/rumah/`, { cache: 'no-store' })
+          fetch(`${API_URL}/cars/all-public`, { cache: 'no-store' }), // DULU: /mobil
+          fetch(`${API_URL}/houses/all-public`, { cache: 'no-store' }) // CEK DI SWAGGER LU. Kalo /rumah ganti jadi /rumah
         ]);
         
         if (!resMobil.ok ||!resRumah.ok) throw new Error('Gagal fetch data');
@@ -74,7 +75,7 @@ export default function HomePage() {
       }
     }; 
     getData();
-  }, []);
+  }, []); // Tambah [API_URL] biar aman
 
   const pesanWA = (item, tipe) => { 
     const noWa = item.wa_showroom || item.wa_number || "62812PUSAT";
@@ -140,7 +141,7 @@ export default function HomePage() {
                 const images = [r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5].filter(Boolean);
                 return (
                   <motion.div key={r.id} initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: i * 0.1 }} viewport={{ once: true }}
-                    className="w-[300px] flex-shrink-0 snap-start bg-[#1A1A1F] rounded-2xl overflow-hidden border-gray-800 hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] hover:-translate-y-2 transition-all duration-500 group">
+                    className="w-[300px] flex-shrink-0 snap-start bg-[#1A1A1F] rounded-2xl overflow-hidden border border-gray-800 hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] hover:-translate-y-2 transition-all duration-500 group">
                     <ImageSlider images={images} />
                     <div className="p-4">
                       <h3 className="font-bold text-lg">{r.nama_rumah}</h3>
