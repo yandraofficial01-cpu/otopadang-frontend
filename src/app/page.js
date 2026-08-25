@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-// Pake env biar fleksibel. Isi di Vercel: https://otopadang-api.vercel.app
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function ImageSlider({ images }) {
@@ -51,22 +50,19 @@ export default function HomePage() {
     const getData = async () => {
       setLoading(true); setError(null);
       try {
-        // INI YANG GUA BENERIN
         const [resMobil, resRumah] = await Promise.all([
-          fetch(`${API_URL}/cars/all-public`, { cache: 'no-store' }), // DULU: /mobil
-          fetch(`${API_URL}/houses/all-public`, { cache: 'no-store' }) // CEK DI SWAGGER LU. Kalo /rumah ganti jadi /rumah
+          fetch(`${API_URL}/cars/all-public`, { cache: 'no-store' }),
+          fetch(`${API_URL}/rumah/all-public`, { cache: 'no-store' }) // <-- INI GUA GANTI DARI /houses JADI /rumah
         ]);
         
-        if (!resMobil.ok ||!resRumah.ok) throw new Error('Gagal fetch data');
+        if (!resMobil.ok) throw new Error(`Mobil error: ${resMobil.status}`);
+        if (!resRumah.ok) throw new Error(`Rumah error: ${resRumah.status}`);
 
         const dataMobil = await resMobil.json(); 
         const dataRumah = await resRumah.json();
 
-        const mobilArray = Array.isArray(dataMobil)? dataMobil : [];
-        const rumahArray = Array.isArray(dataRumah)? dataRumah : [];
-
-        setMobil(mobilArray.slice(0, 8)); 
-        setRumah(rumahArray.slice(0, 8));
+        setMobil(Array.isArray(dataMobil)? dataMobil.slice(0, 8) : []); 
+        setRumah(Array.isArray(dataRumah)? dataRumah.slice(0, 8) : []);
       } catch (err) { 
         console.error(err);
         setError(err.message); 
@@ -75,7 +71,7 @@ export default function HomePage() {
       }
     }; 
     getData();
-  }, []); // Tambah [API_URL] biar aman
+  }, [API_URL]);
 
   const pesanWA = (item, tipe) => { 
     const noWa = item.wa_showroom || item.wa_number || "62812PUSAT";
