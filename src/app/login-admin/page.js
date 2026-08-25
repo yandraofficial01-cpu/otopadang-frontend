@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-const API_URL = 'https://otopadang-api.up.railway.app'
+const API_URL = 'https://otopadang-api.vercel.app' // <-- INI YANG DIGANTI
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
