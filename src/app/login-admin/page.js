@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-const API_URL = 'https://otopadang-api.vercel.app' // <-- INI YANG DIGANTI
+const API_URL = 'https://otopadang-api.vercel.app' // <-- UDAH BENER
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
@@ -25,27 +25,28 @@ export default function LoginAdminPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      // 1. GANTI JADI FORM DATA KARENA BE PAKE OAuth2PasswordRequestForm
+      const formData = new URLSearchParams()
+      formData.append('username', email) // WAJIB 'username' bukan 'email'
+      formData.append('password', password)
+
+      const res = await fetch(`${API_URL}/admin/login`, { // 2. GANTI JADI /admin/login
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // 3. GANTI HEADER
+        body: formData
       })
       
       const data = await res.json()
       console.log('RESPONSE FULL:', data)
 
       if(!res.ok){
-        alert('Login gagal: ' + (data.detail || JSON.stringify(data)))
+        alert('Login gagal: ' + (data.detail || 'Email atau password salah'))
         setLoading(false)
         return
       }
 
-      const user = data.user || data
-      const userRole = (user.role || data.role || '').toLowerCase()
-      const accessToken = data.access_token || data.token || data.accessToken
-      const showroomId = user.showroom_id ?? data.showroom_id
-
-      console.log('Role:', userRole, 'showroom_id:', showroomId)
+      const accessToken = data.access_token
+      console.log('Token:', accessToken)
 
       if(!accessToken){
         alert('Token kosong!')
@@ -53,19 +54,12 @@ export default function LoginAdminPage() {
         return
       }
 
-      // CEK ROLE AJA, LEBIH AMAN
-      if(userRole !== 'admin'){
-        alert(`Akses ditolak! Role kamu: ${userRole}`)
-        if(userRole === 'showroom') window.location.href = '/login-showroom'
-        setLoading(false)
-        return
-      }
-
-      // Simpen data penting
+      // BE lu gak return user, jadi kita langsung set role admin aja
+      // karena endpoint ini khusus /admin/login
       localStorage.setItem('token', accessToken)
       localStorage.setItem('access_token', accessToken)
       localStorage.setItem('role', 'admin')
-      localStorage.setItem('email', user.email || email)
+      localStorage.setItem('email', email)
       
       // Cookie penting buat middleware Next.js
       document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
