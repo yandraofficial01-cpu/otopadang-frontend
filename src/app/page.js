@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import Navbar from "./component/navbar";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -95,7 +94,7 @@ export default function HomePage() {
 
   return (
     <main className={`min-h-screen transition-colors duration-300 ${bgMain}`}>
-      <Navbar />
+      {/* NAVBAR UDAH DIHAPUS DARI SINI */}
 
       <section className="container mx-auto max-w-7xl px-4 pt-24 pb-20 text-center">
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl md:text-6xl font-bold mb-4"><span>Selamat Datang di </span><span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Portal no 1 Urang Padang</span></motion.h1>
@@ -106,8 +105,8 @@ export default function HomePage() {
           <div className="relative"><Link href="/rumah" className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'rumah'? 'scale-95' : 'scale-100'}`}>Cari Rumah</Link>{activeBtn === 'rumah' && <CursorPointer />}</div>
         </motion.div>
 
-        {/* UDAH GUE FIX: tambah flex w-full justify-center */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex flex-col items-center justify-center w-full ${textMuted}`}>
+        {/* PANAH UDAH TENGAH: flex-col items-center justify-center w-full */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex-col items-center justify-center w-full ${textMuted}`}>
           <p className="text-sm mb-2">Geser ke bawah</p>
           <motion.svg animate={{ y: [0, 10, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></motion.svg>
         </motion.div>
