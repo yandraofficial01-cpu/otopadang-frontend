@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-const API_URL = 'https://otopadang-api.vercel.app'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
@@ -10,12 +10,7 @@ export default function LoginAdminPage() {
   const [loading, setLoading] = useState(false)
 
   const handleLogoutDulu = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('token_admin')
-    localStorage.removeItem('role')
-    localStorage.removeItem('email')
-    localStorage.removeItem('showroom_id')
+    localStorage.clear()
     document.cookie = "token=; path=/; max-age=0"
     alert('Sudah logout. Silakan login lagi sebagai admin')
     window.location.reload()
@@ -25,21 +20,16 @@ export default function LoginAdminPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      // PENTING: /auth/login + JSON
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ 
-          email: email, 
-          password: password 
-        })
+        body: JSON.stringify({ email, password })
       })
       
       const data = await res.json()
-      console.log('RESPONSE FULL:', data)
 
       if(!res.ok){
         alert('Login gagal: ' + (data.detail || 'Email atau password salah'))
@@ -56,26 +46,20 @@ export default function LoginAdminPage() {
         return
       }
 
-      // Cek role harus admin
       if(user.role.toLowerCase() !== 'admin'){
         alert(`Akses ditolak! Akun kamu role: ${user.role}`)
         setLoading(false)
         return
       }
 
-      // Simpen semua data
       localStorage.setItem('token', accessToken)
-      localStorage.setItem('access_token', accessToken)
       localStorage.setItem('role', user.role)
       localStorage.setItem('email', user.email)
       localStorage.setItem('showroom_id', user.showroom_id)
       
-      // Cookie buat middleware Next.js
       document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
 
-      setTimeout(() => {
-        window.location.replace('/admin')
-      }, 300)
+      window.location.replace('/admin')
       
     } catch (error) {
       console.error(error)
@@ -86,7 +70,7 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800 shadow-xl">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800 shadow-xl">
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin Otopadang</h1>
         
         <input 
@@ -94,7 +78,7 @@ export default function LoginAdminPage() {
           placeholder="Email Admin" 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         <input 
@@ -108,7 +92,7 @@ export default function LoginAdminPage() {
         
         <button 
           disabled={loading} 
-          className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50"
         >
           {loading ? 'Loading...' : 'Masuk sebagai Admin'}
         </button>
