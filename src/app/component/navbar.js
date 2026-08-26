@@ -27,10 +27,10 @@ export default function Navbar() {
 
         {/* DESKTOP: LOGIN BUTTONS */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login-admin" className="px-4 py-2 text-sm font-semibold text-yellow-400 border border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">
+          <Link href="/login-admin" className="px-4 py-2 text-sm font-semibold text-yellow-400 border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">
             Login Admin
           </Link>
-          <Link href="/login-showroom" className="px-4 py-2 text-sm font-semibold text-white border-gray-600 rounded-lg hover:bg-gray-700 transition">
+          <Link href="/login-showroom" className="px-4 py-2 text-sm font-semibold text-white border-gray-600 rounded-lg hover:bg-gray-700 transition"> {/* <-- UDAH DITAMBAH border */}
             Login Showroom
           </Link>
         </div>
@@ -54,10 +54,10 @@ export default function Navbar() {
           ))}
           
           <div className="border-t border-gray-800 pt-4 flex flex-col gap-3"> 
-            <Link href="/login-admin" onClick={() => setIsOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">
+            <Link href="/login-admin" onClick={() => setIsOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">
               Login Admin
             </Link>
-            <Link href="/login-showroom" onClick={() => setIsOpen(false)} className="block w-full text-center text-white font-semibold border border-gray-600 py-3 rounded-lg hover:bg-gray-700 transition">
+            <Link href="/login-showroom" onClick={() => setIsOpen(false)} className="block w-full text-center text-white font-semibold border-gray-600 py-3 rounded-lg hover:bg-gray-700 transition">
               Login Showroom
             </Link>
           </div>
