@@ -35,17 +35,6 @@ function CursorPointer() {
   return (<div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"><motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 1, repeat: Infinity }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg"><path d="M12 2L3 20L12 17L21 20L12 2Z" fill="currentColor" stroke="black" strokeWidth="1.5"/></svg></motion.div><div className="absolute top-1 left-1 w-7 h-7 border-2 border-yellow-400 rounded-full animate-ping"></div></div>)
 }
 
-function ThemeToggle({ theme, setTheme }) {
-  return (
-    <button
-      onClick={() => setTheme(theme === 'dark'? 'light' : 'dark')}
-      className="fixed top-5 right-5 z-50 px-4 py-2 rounded-full bg-yellow-400 text-black font-bold hover:scale-105 transition text-sm"
-    >
-      {theme === 'dark'? 'Mode Terang' : 'Mode Gelap'} {/* <-- GANTI JADI TULISAN */}
-    </button>
-  )
-}
-
 export default function HomePage() {
   const [mobil, setMobil] = useState([]);
   const [rumah, setRumah] = useState([]);
@@ -106,14 +95,28 @@ export default function HomePage() {
 
   const bgMain = theme === 'dark'? 'bg-[#0B0B0F] text-white' : 'bg-gray-50 text-black';
   const bgCard = theme === 'dark'? 'bg-[#1A1A1F] border-gray-800' : 'bg-white border-gray-200';
+  const bgHeader = theme === 'dark'? 'bg-[#0B0B0F]/80' : 'bg-gray-50/80';
   const textMuted = theme === 'dark'? 'text-gray-400' : 'text-gray-600';
   const gradientOverlay = theme === 'dark'? 'from-[#0B0B0F]' : 'from-gray-50';
 
   return (
     <main className={`min-h-screen transition-colors duration-300 ${bgMain}`}>
-      <ThemeToggle theme={theme} setTheme={setTheme} />
 
-      <section className="container mx-auto max-w-7xl px-4 py-20 text-center">
+      {/* HEADER BARU BIAR RAPI DAN GAK NUTUPIN */}
+      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md ${bgHeader} border-b ${theme==='dark'?'border-gray-800':'border-gray-200'}`}>
+        <div className="container mx-auto max-w-7xl px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-yellow-400">Otopadang</h1>
+          <button
+            onClick={() => setTheme(theme === 'dark'? 'light' : 'dark')}
+            className="px-4 py-2 rounded-full bg-yellow-400 text-black font-bold hover:scale-105 transition text-sm"
+          >
+            {theme === 'dark'? 'Mode Terang' : 'Mode Gelap'}
+          </button>
+        </div>
+      </header>
+
+      {/* KASIH pt-24 BIAR GAK KETUTUP HEADER */}
+      <section className="container mx-auto max-w-7xl px-4 pt-24 pb-20 text-center">
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl md:text-6xl font-bold mb-4"><span>Selamat Datang di </span><span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Portal no 1 Urang Padang</span></motion.h1>
         <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-2xl md:text-4xl font-semibold mb-6">Temukan Mobil & Rumah Impian Anda Disini</motion.h2>
         <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={`${textMuted} mt-4 text-lg max-w-2xl mx-auto`}>Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang.</motion.p>
@@ -122,8 +125,8 @@ export default function HomePage() {
           <div className="relative"><Link href="/rumah" className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'rumah'? 'scale-95' : 'scale-100'}`}>Cari Rumah</Link>{activeBtn === 'rumah' && <CursorPointer />}</div>
         </motion.div>
 
-        {/* PANAH DIBENERIN: TAMBAH items-center */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex-col items-center ${textMuted}`}> {/* <-- TAMBAH flex-col items-center */}
+        {/* PANAH UDAH FIX: TAMBAH flex */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex flex-col items-center ${textMuted}`}>
           <p className="text-sm mb-2">Geser ke bawah</p>
           <motion.svg animate={{ y: [0, 10, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></motion.svg>
         </motion.div>
