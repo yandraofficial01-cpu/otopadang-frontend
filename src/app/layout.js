@@ -14,9 +14,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}>
-      <body className="min-h-full flex-col bg-[#0B0B0F] text-gray-200">
+      <body className="min-h-full flex flex-col bg-[#0B0B0F] text-gray-200"> {/* <-- TAMBAH flex */}
         <Navbar />
-        <main className="flex-grow">{children}</main>
+        <main className="flex-grow w-full">{children}</main> {/* <-- TAMBAH w-full */}
         <footer className="bg-black border-t border-gray-900 py-8 text-center text-gray-500 text-sm">
           © 2026 Otopadang.com - Elegance in Every Deal
         </footer>
