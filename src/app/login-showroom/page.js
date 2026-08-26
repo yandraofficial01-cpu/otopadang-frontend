@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-const API_URL = 'https://otopadang-api.up.railway.app'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function LoginShowroomPage() {
   const [email, setEmail] = useState('')
@@ -24,36 +24,26 @@ export default function LoginShowroomPage() {
 
       if(res.ok){
         const user = data.user
-        
-        console.log("DATA USER:", user) // buat debug
 
-        // 1. Simpan ke localStorage buat dipake di FE
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('role', user.role)
         localStorage.setItem('showroom_id', user.showroom_id)
         localStorage.setItem('email', user.email)
 
-        // 2. PENTING: Simpan ke cookie biar kebaca middleware
         document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
 
         if(user.role !== 'showroom'){
           alert('Akun ini bukan showroom')
           localStorage.clear()
-          // hapus cookie juga
           document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+          setLoading(false)
           return
         }
         
         alert('Login berhasil!')
         router.push('/dashboard/mobil/input')
       } else {
-        if(res.status === 403 && data.detail?.hubungi_admin){
-          if(confirm(data.detail.message + '\n\nHubungi admin via WA?')){
-            window.open(data.detail.hubungi_admin, '_blank')
-          }
-        } else {
-          alert(data.detail?.message || data.detail || 'Login gagal')
-        }
+        alert(data.detail || 'Login gagal')
       }
     } catch (error) {
       alert('Server error: ' + error.message)
