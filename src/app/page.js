@@ -39,12 +39,9 @@ function ThemeToggle({ theme, setTheme }) {
   return (
     <button
       onClick={() => setTheme(theme === 'dark'? 'light' : 'dark')}
-      className="fixed top-5 right-5 z-50 p-3 rounded-full bg-yellow-400 text-black hover:scale-110 transition"
+      className="fixed top-5 right-5 z-50 px-4 py-2 rounded-full bg-yellow-400 text-black font-bold hover:scale-105 transition text-sm"
     >
-      {theme === 'dark'?
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> :
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-      }
+      {theme === 'dark'? 'Mode Terang' : 'Mode Gelap'} {/* <-- GANTI JADI TULISAN */}
     </button>
   )
 }
@@ -55,15 +52,13 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeBtn, setActiveBtn] = useState('mobil');
-  const [theme, setTheme] = useState('dark'); // <-- STATE THEME
+  const [theme, setTheme] = useState('dark');
 
-  // LOAD THEME DARI LOCALSTORAGE
   useEffect(() => {
     const savedTheme = localStorage.getItem('otopadang-theme') || 'dark';
     setTheme(savedTheme);
   }, []);
 
-  // SIMPAN THEME KE LOCALSTORAGE
   useEffect(() => {
     localStorage.setItem('otopadang-theme', theme);
   }, [theme]);
@@ -109,7 +104,6 @@ export default function HomePage() {
     window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
-  // CLASS DINAMIS BERDASARKAN THEME
   const bgMain = theme === 'dark'? 'bg-[#0B0B0F] text-white' : 'bg-gray-50 text-black';
   const bgCard = theme === 'dark'? 'bg-[#1A1A1F] border-gray-800' : 'bg-white border-gray-200';
   const textMuted = theme === 'dark'? 'text-gray-400' : 'text-gray-600';
@@ -117,7 +111,7 @@ export default function HomePage() {
 
   return (
     <main className={`min-h-screen transition-colors duration-300 ${bgMain}`}>
-      <ThemeToggle theme={theme} setTheme={setTheme} /> {/* <-- TOMBOL TOGGLE */}
+      <ThemeToggle theme={theme} setTheme={setTheme} />
 
       <section className="container mx-auto max-w-7xl px-4 py-20 text-center">
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl md:text-6xl font-bold mb-4"><span>Selamat Datang di </span><span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Portal no 1 Urang Padang</span></motion.h1>
@@ -127,7 +121,12 @@ export default function HomePage() {
           <div className="relative"><Link href="/mobil" className={`px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'mobil'? 'scale-95' : 'scale-100'}`}>Cari Mobil</Link>{activeBtn === 'mobil' && <CursorPointer />}</div>
           <div className="relative"><Link href="/rumah" className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'rumah'? 'scale-95' : 'scale-100'}`}>Cari Rumah</Link>{activeBtn === 'rumah' && <CursorPointer />}</div>
         </motion.div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex-col items-center ${textMuted}`}><p className="text-sm mb-2">Geser ke bawah</p><motion.svg animate={{ y: [0, 10, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></motion.svg></motion.div>
+
+        {/* PANAH DIBENERIN: TAMBAH items-center */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex-col items-center ${textMuted}`}> {/* <-- TAMBAH flex-col items-center */}
+          <p className="text-sm mb-2">Geser ke bawah</p>
+          <motion.svg animate={{ y: [0, 10, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></motion.svg>
+        </motion.div>
       </section>
 
       {error && <p className="text-red-500 text-center my-4">Error: {error}</p>}
