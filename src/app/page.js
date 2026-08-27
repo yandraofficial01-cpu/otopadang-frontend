@@ -17,7 +17,7 @@ function ImageSlider({ item, tipe, theme }) {
   const [current, setCurrent] = useState(0);
   const [zoomImg, setZoomImg] = useState(null);
 
-  // FIX: Ambil foto_url_1 sampe foto_url_8 dari DB lu
+  // Ambil foto_url_1 sampe foto_url_8 dari DB
   const imageUrls = [
     item.foto_url_1, item.foto_url_2, item.foto_url_3, item.foto_url_4,
     item.foto_url_5, item.foto_url_6, item.foto_url_7, item.foto_url_8
@@ -29,7 +29,12 @@ function ImageSlider({ item, tipe, theme }) {
 
   return (
     <div className={`relative aspect-[16/9] ${bgColor} rounded-t-2xl overflow-hidden`}>
-      <img src={imageUrls[current] || 'https://placehold.co/600x400/1A1A1F/FFC107?text=Otopadang'} alt={tipe === 'rumah'? item.nama_rumah : item.nama_mobil} className="w-full h-full object-cover cursor-zoom-in group-hover:scale-110 transition duration-500" onClick={() => setZoomImg(imageUrls[current])} />
+      <img
+        src={imageUrls[current] || 'https://placehold.co/600x400/1A1A1F/FFC107?text=Otopadang'}
+        alt={tipe === 'rumah'? item.nama_rumah : item.nama_mobil}
+        className="w-full h-full object-cover cursor-zoom-in group-hover:scale-110 transition duration-500"
+        onClick={() => setZoomImg(imageUrls[current])}
+      />
       {imageUrls.length > 1 && (
         <>
           <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/80 active:scale-90">‹</button>
@@ -39,13 +44,26 @@ function ImageSlider({ item, tipe, theme }) {
           </div>
         </>
       )}
-      {zoomImg && (<div onClick={() => setZoomImg(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"><img src={zoomImg} className="max-w-full max-h-full object-contain" /></div>)}
+      {zoomImg && (
+        <div onClick={() => setZoomImg(null)} className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out">
+          <img src={zoomImg} className="max-w-full max-h-full object-contain" />
+        </div>
+      )}
     </div>
   )
 }
 
 function CursorPointer() {
-  return (<div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"><motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 1, repeat: Infinity }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg"><path d="M12 2L3 20L12 17L21 20L12 2Z" fill="currentColor" stroke="black" strokeWidth="1.5"/></svg></motion.div><div className="absolute top-1 left-1 w-7 h-7 border-2 border-yellow-400 rounded-full animate-ping"></div></div>)
+  return (
+    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
+      <motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 1, repeat: Infinity }}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-400 drop-shadow-lg">
+          <path d="M12 2L3 20L12 17L21 20L12 2Z" fill="currentColor" stroke="black" strokeWidth="1.5"/>
+        </svg>
+      </motion.div>
+      <div className="absolute top-1 left-1 w-7 h-7 border-2 border-yellow-400 rounded-full animate-ping"></div>
+    </div>
+  )
 }
 
 export default function HomePage() {
@@ -75,16 +93,24 @@ export default function HomePage() {
 
   useEffect(() => {
     const getData = async () => {
-      setLoading(true); setError(null);
+      setLoading(true);
+      setError(null);
       try {
         const [resMobil, resRumah] = await Promise.all([
           fetch(`${API_URL}/cars/all-public`, { cache: 'no-store' }),
           fetch(`${API_URL}/rumah/all-public`, { cache: 'no-store' })
         ]);
+
         if (!resMobil.ok) throw new Error(`Mobil error: ${resMobil.status}`);
         if (!resRumah.ok) throw new Error(`Rumah error: ${resRumah.status}`);
-        const dataMobil = await resMobil.json();
-        const dataRumah = await resRumah.json();
+
+        const rawMobil = await resMobil.json();
+        const rawRumah = await resRumah.json();
+
+        // FIX: Handle 2 kemungkinan bentuk response dari BE
+        const dataMobil = rawMobil.data || rawMobil;
+        const dataRumah = rawRumah.data || rawRumah;
+
         setMobil(Array.isArray(dataMobil)? dataMobil.slice(0, 8) : []);
         setRumah(Array.isArray(dataRumah)? dataRumah.slice(0, 8) : []);
       } catch (err) {
@@ -98,7 +124,7 @@ export default function HomePage() {
   }, [API_URL]);
 
   const pesanWA = (item, tipe) => {
-    // FIX: Sesuai DB lu. Mobil pake no_wa_showroom, Rumah pake wa_number
+    // Sesuai DB: Mobil pake no_wa_showroom, Rumah pake wa_number
     const noWa = tipe === 'mobil'? item.no_wa_showroom : item.wa_number || "628979879518";
     const nama = tipe === 'rumah'? item.nama_rumah : item.nama_mobil;
     const text = `Halo Otopadang, saya tertarik dengan ${nama} seharga Rp ${item.harga?.toLocaleString('id-ID')}. Apakah masih tersedia?`;
@@ -120,10 +146,12 @@ export default function HomePage() {
           </nav>
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/login-admin" className="px-3 py-2 text-xs font-semibold text-yellow-400 border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">Login Admin</Link>
-              <Link href="/login-showroom" className="px-3 py-2 text-xs font-semibold text-white border-gray-600 rounded-lg hover:bg-gray-700 transition">Login Showroom</Link>
+              <Link href="/login-admin" className="px-3 py-2 text-xs font-semibold text-yellow-400 border border-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">Login Admin</Link>
+              <Link href="/login-showroom" className="px-3 py-2 text-xs font-semibold text-white border border-gray-600 rounded-lg hover:bg-gray-700 transition">Login Showroom</Link>
             </div>
-            <button onClick={() => setTheme(theme === 'dark'? 'light' : 'dark')} className="px-4 py-2 rounded-full bg-yellow-400 text-black font-bold hover:scale-105 transition text-sm">{theme === 'dark'? 'Mode Terang' : 'Mode Gelap'}</button>
+            <button onClick={() => setTheme(theme === 'dark'? 'light' : 'dark')} className="px-4 py-2 rounded-full bg-yellow-400 text-black font-bold hover:scale-105 transition text-sm">
+              {theme === 'dark'? 'Mode Terang' : 'Mode Gelap'}
+            </button>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2">
               {isMenuOpen? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> : <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>}
             </button>
@@ -135,7 +163,7 @@ export default function HomePage() {
               <nav className="flex flex-col p-4 gap-4">
                 {navLinks.map(link => (<Link key={link.name} href={link.href} onClick={() => setIsMenuOpen(false)} className="hover:text-yellow-400 transition py-2">{link.name}</Link>))}
                 <div className="border-t pt-4 mt-2 flex-col gap-3">
-                  <Link href="/login-admin" onClick={() => setIsMenuOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">Login Admin</Link>
+                  <Link href="/login-admin" onClick={() => setIsMenuOpen(false)} className="block w-full text-center text-yellow-400 font-semibold border border-yellow-400 py-3 rounded-lg hover:bg-yellow-400 hover:text-black transition">Login Admin</Link>
                   <Link href="/login-showroom" onClick={() => setIsMenuOpen(false)} className="block w-full text-center text-white font-semibold border-gray-600 py-3 rounded-lg hover:bg-gray-700 transition">Login Showroom</Link>
                 </div>
               </nav>
@@ -145,14 +173,27 @@ export default function HomePage() {
       </header>
 
       <section className="container mx-auto max-w-7xl px-4 pt-28 pb-20 text-center">
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl md:text-6xl font-bold mb-4"><span>Selamat Datang di </span><span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Portal no 1 Urang Padang</span></motion.h1>
-        <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-2xl md:text-4xl font-semibold mb-6">Temukan Mobil & Rumah Impian Anda Disini</motion.h2>
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={`${textMuted} mt-4 text-lg max-w-2xl mx-auto`}>Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang.</motion.p>
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl md:text-6xl font-bold mb-4">
+          <span>Selamat Datang di </span>
+          <span className="bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">Portal no 1 Urang Padang</span>
+        </motion.h1>
+        <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-2xl md:text-4xl font-semibold mb-6">
+          Temukan Mobil & Rumah Impian Anda Disini
+        </motion.h2>
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={`${textMuted} mt-4 text-lg max-w-2xl mx-auto`}>
+          Ratusan mobil & rumah terbaik di Padang udah nunggu Anda. Yuk mulai cari sekarang.
+        </motion.p>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }} className="mt-8 flex gap-4 justify-center relative">
-          <div className="relative"><Link href="/mobil" className={`px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'mobil'? 'scale-95' : 'scale-100'}`}>Cari Mobil</Link>{activeBtn === 'mobil' && <CursorPointer />}</div>
-          <div className="relative"><Link href="/rumah" className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'rumah'? 'scale-95' : 'scale-100'}`}>Cari Rumah</Link>{activeBtn === 'rumah' && <CursorPointer />}</div>
+          <div className="relative">
+            <Link href="/mobil" className={`px-8 py-3 bg-yellow-500 text-black font-bold rounded-lg hover:bg-yellow-400 hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'mobil'? 'scale-95' : 'scale-100'}`}>Cari Mobil</Link>
+            {activeBtn === 'mobil' && <CursorPointer />}
+          </div>
+          <div className="relative">
+            <Link href="/rumah" className={`px-8 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all duration-300 ${activeBtn === 'rumah'? 'scale-95' : 'scale-100'}`}>Cari Rumah</Link>
+            {activeBtn === 'rumah' && <CursorPointer />}
+          </div>
         </motion.div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex-col items-center justify-center w-full ${textMuted}`}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className={`mt-16 flex flex-col items-center justify-center w-full ${textMuted}`}>
           <p className="text-sm mb-2">Geser ke bawah</p>
           <motion.svg animate={{ y: [0, 10, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></motion.svg>
         </motion.div>
@@ -192,7 +233,7 @@ export default function HomePage() {
                 <div className="p-5">
                   <h3 className="text-xl font-bold">{item.nama_rumah}</h3>
                   <p className={`text-2xl font-bold text-yellow-400 my-2`}>Rp {item.harga?.toLocaleString('id-ID')}</p>
-                  <p className={`${textMuted} text-sm mb-4`}>{item.luas_tanah}m² • LT • {item.luas_bangunan}m² LB</p>
+                  <p className={`${textMuted} text-sm mb-4`}>{item.luas_tanah}m² LT • {item.luas_bangunan}m² LB</p>
                   <button onClick={() => pesanWA(item, 'rumah')} className="w-full mt-2 bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600">Tanya via WA</button>
                 </div>
               </div>
