@@ -7,7 +7,7 @@ import {
   Loader2, RefreshCw, AlertTriangle
 } from 'lucide-react'
 
-const API_URL = 'https://otopadang-api.up.railway.app'
+const API_URL = 'https://otopadang-api.vercel.app' // <-- UDAH DIGANTI KE VERCEL
 
 export default function AdminPage() {
   const [token, setToken] = useState('')
@@ -41,7 +41,7 @@ export default function AdminPage() {
     }
   }
 
-  // ADA RETRY 1X BUAT BANGUNIN RAILWAY
+  // ADA RETRY 1X BUAT BANGUNIN VERCEL
   const fetchData = useCallback(async (t) => {
     setLoading(true)
     setError('')
@@ -75,7 +75,7 @@ export default function AdminPage() {
       setAllBlog(Array.isArray(blog)? blog : [])
 
       if(!mobil.length &&!showroom.length &&!rumah.length) {
-        setError('Data masih 0. Cek: 1. Role admin 2. Railway lagi bangun. Pencet Refresh 1x lagi')
+        setError('Data masih 0. Cek: 1. Role admin 2. Vercel lagi bangun. Pencet Refresh 1x lagi')
       }
 
     } catch (err) {
@@ -169,7 +169,7 @@ export default function AdminPage() {
     <div className="bg-[#0B0B0F] min-h-screen flex flex-col items-center justify-center gap-4 text-white">
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
       <p className="animate-pulse font-semibold">Loading Panel Admin...</p>
-      <p className="text-xs text-gray-500">Bangunin Railway... max 22 detik</p>
+      <p className="text-xs text-gray-500">Bangunin Vercel... max 22 detik</p>
       <button onClick={handleLogout} className="mt-4 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2"><LogOut size={18}/> Force Logout</button>
     </div>
   )
@@ -203,12 +203,12 @@ export default function AdminPage() {
       {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>fetchData(token)} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><Car size={16}/> Total Mobil</p>
           <p className="text-3xl font-bold mt-2">{allMobil.length}</p>
           <p className="text-xs text-yellow-400 mt-1">{mobilPending.length} pending</p>
         </div>
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><Building2 size={16}/> Showroom</p>
           <p className="text-3xl font-bold mt-2">{showrooms.length}</p>
         </div>
@@ -216,7 +216,7 @@ export default function AdminPage() {
           <p className="text-gray-400 text-sm flex items-center gap-2"><Home size={16}/> Rumah</p>
           <p className="text-3xl font-bold mt-2">{allRumah.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><FileText size={16}/> Blog</p>
           <p className="text-3xl font-bold mt-2">{allBlog.length}</p>
         </div>
@@ -227,7 +227,7 @@ export default function AdminPage() {
         <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><Flame size={20}/> Review Mobil Baru ({mobilPending.length})</h2>
         {mobilPending.length === 0? <p className="text-gray-500">Tidak ada mobil baru - Total di DB: {allMobil.length}</p> :
           mobilPending.slice(0, 10).map(m => (
-            <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50 hover:bg-[#1a1a20] transition">
+            <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50 hover:bg-[#1a1a20] transition">
               <div className="flex gap-3 w-full">
                 <img src={m.foto_url_1 || m.foto_url || 'https://via.placeholder.com/100x100.png?text=No+Image'} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" alt={m.nama_mobil} />
                 <div className="flex-1">
@@ -267,9 +267,9 @@ export default function AdminPage() {
       <div className="mb-8 p-6 border border-purple-500/30 rounded-2xl bg-gradient-to-br from-purple-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-purple-400 flex items-center gap-2"><Home size={20}/> Manajemen Rumah ({allRumah.length})</h2>
         {rumahAktif.slice(0, 5).map(r => (
-          <div key={r.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
+          <div key={r.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
             <div>
-              <p className="font-bold">{r.judul}</p>
+              <p className="font-bold">{r.judul || r.nama_rumah}</p>
               <p className="text-sm text-gray-400">Lokasi: {r.lokasi} | Harga: Rp{(r.harga || 0).toLocaleString('id-ID')}</p>
               <div className="flex items-center gap-2 mt-1"><StatusBadge status={r.status}/></div>
             </div>
@@ -306,7 +306,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
         <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
-        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
+        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
         <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
       </div>
     </div>
