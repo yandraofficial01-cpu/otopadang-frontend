@@ -7,7 +7,7 @@ import {
   Loader2, RefreshCw, AlertTriangle
 } from 'lucide-react'
 
-const API_URL = 'https://otopadang-api.vercel.app' // <-- UDAH DIGANTI KE VERCEL
+const API_URL = 'https://otopadang-api.vercel.app'
 
 export default function AdminPage() {
   const [token, setToken] = useState('')
@@ -18,7 +18,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // NAEKIN JADI 20 DETIK + ADA LOG
   const fetchWithTimeout = async (url, t, timeout = 20000) => {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeout)
@@ -26,7 +25,8 @@ export default function AdminPage() {
       console.log("FETCHING:", url)
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${t}` },
-        signal: controller.signal
+        signal: controller.signal,
+        cache: 'no-store'
       })
       clearTimeout(id)
       if(!res.ok) {
@@ -41,7 +41,6 @@ export default function AdminPage() {
     }
   }
 
-  // ADA RETRY 1X BUAT BANGUNIN VERCEL
   const fetchData = useCallback(async (t) => {
     setLoading(true)
     setError('')
@@ -64,10 +63,12 @@ export default function AdminPage() {
         }
       }
 
-      mobil = await fetchRetry('/admin/mobil', 'Mobil')
-      showroom = await fetchRetry('/admin/showroom', 'Showroom')
-      rumah = await fetchRetry('/admin/rumah', 'Rumah')
-      blog = await fetchRetry('/admin/blog', 'Blog')
+      [mobil, showroom, rumah, blog] = await Promise.all([
+        fetchRetry('/admin/mobil', 'Mobil'),
+        fetchRetry('/admin/showroom', 'Showroom'),
+        fetchRetry('/admin/rumah', 'Rumah'),
+        fetchRetry('/admin/blog', 'Blog'),
+      ])
 
       setAllMobil(Array.isArray(mobil)? mobil : [])
       setShowrooms(Array.isArray(showroom)? showroom : [])
@@ -193,14 +194,14 @@ export default function AdminPage() {
     <div className="p-6 md:p-10 bg-[#0B0B0F] min-h-screen text-white font-sans">
       <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
         <h1 className="text-3xl font-bold text-yellow-400 flex items-center gap-3">
-          <ShieldCheck size={32} className="text-yellow-400"/> Panel Admin OTO PADANG
+          <ShieldCheck size={32}/> Panel Admin OTO PADANG
         </h1>
-        <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 border-red-500/30 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
+        <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 border border-red-500/30 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
           <LogOut size={18}/> Logout
         </button>
       </div>
 
-      {error && <div className="bg-red-900/50 border border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>fetchData(token)} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
+      {error && <div className="bg-red-900/50 border-red-500 p-3 rounded-lg mb-4 flex items-center gap-2"><AlertTriangle size={18}/> {error} <button onClick={()=>fetchData(token)} className="ml-2 bg-white text-black px-2 py-1 rounded text-xs flex items-center gap-1"><RefreshCw size={12}/> Refresh</button></div>}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
@@ -216,7 +217,7 @@ export default function AdminPage() {
           <p className="text-gray-400 text-sm flex items-center gap-2"><Home size={16}/> Rumah</p>
           <p className="text-3xl font-bold mt-2">{allRumah.length}</p>
         </div>
-        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border-gray-800 p-5 rounded-2xl shadow-lg">
+        <div className="bg-gradient-to-br from-[#1a1a20] to-[#111] border border-gray-800 p-5 rounded-2xl shadow-lg">
           <p className="text-gray-400 text-sm flex items-center gap-2"><FileText size={16}/> Blog</p>
           <p className="text-3xl font-bold mt-2">{allBlog.length}</p>
         </div>
@@ -246,10 +247,10 @@ export default function AdminPage() {
       </div>
 
       {/* MOBIL AKTIF */}
-      <div className="mb-8 p-6 border border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent">
+      <div className="mb-8 p-6 border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-green-400 flex items-center gap-2"><Check size={20}/> Mobil Aktif ({mobilApproved.length})</h2>
         {mobilApproved.slice(0, 5).map(m => (
-          <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
+          <div key={m.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
             <div className="flex gap-3">
               <img src={m.foto_url_1 || m.foto_url || 'https://via.placeholder.com/80x80.png'} className="w-16 h-16 rounded-lg object-cover" />
               <div>
@@ -267,9 +268,9 @@ export default function AdminPage() {
       <div className="mb-8 p-6 border border-purple-500/30 rounded-2xl bg-gradient-to-br from-purple-900/10 to-transparent">
         <h2 className="text-xl font-bold mb-4 text-purple-400 flex items-center gap-2"><Home size={20}/> Manajemen Rumah ({allRumah.length})</h2>
         {rumahAktif.slice(0, 5).map(r => (
-          <div key={r.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
+          <div key={r.id} className="border border-gray-800 p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center bg-[#1a1a20]/50">
             <div>
-              <p className="font-bold">{r.judul || r.nama_rumah}</p>
+              <p className="font-bold">{r.nama_rumah || r.judul}</p>
               <p className="text-sm text-gray-400">Lokasi: {r.lokasi} | Harga: Rp{(r.harga || 0).toLocaleString('id-ID')}</p>
               <div className="flex items-center gap-2 mt-1"><StatusBadge status={r.status}/></div>
             </div>
@@ -305,8 +306,8 @@ export default function AdminPage() {
       <h2 className="text-xl font-bold mb-4">Menu Lainnya</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Link href="/admin/upload-rumah" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
-        <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
-        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
+        <Link href="/admin/blog" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2"><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
+        <Link href="/admin/register-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
         <Link href="/admin/approve-showroom" className="p-4 border border-gray-800 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2"><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
       </div>
     </div>
