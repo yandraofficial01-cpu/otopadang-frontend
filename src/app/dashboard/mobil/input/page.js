@@ -9,6 +9,13 @@ const CLOUD_NAME = "jh0ct5rz"
 const UPLOAD_PRESET = "otopadang_preset"
 const API = "https://otopadang-api.vercel.app"
 
+// HELPER BARU: buat baca cookie
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 export default function InputMobilPage() {
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
@@ -25,8 +32,9 @@ export default function InputMobilPage() {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        const t = localStorage.getItem('token')
-        const role = localStorage.getItem('role')
+        // BACA DARI COOKIE + LOCALSTORAGE
+        const t = getCookie('token') || localStorage.getItem('token')
+        const role = getCookie('role') || localStorage.getItem('role')
 
         if (!t) {
           window.location.href = '/'
@@ -34,13 +42,15 @@ export default function InputMobilPage() {
         }
         if(role?.toLowerCase()!== 'showroom'){
           localStorage.clear()
-          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax" // HAPUS COOKIE JUGA
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+          document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
           window.location.href = '/'
           return
         }
       } catch(e) {
         localStorage.clear()
         document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+        document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
         window.location.href = '/'
       } finally {
         setPageLoading(false)
@@ -55,7 +65,8 @@ export default function InputMobilPage() {
 
   const handleLogout = () => {
     localStorage.clear()
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax" // FIX UTAMA DISINI
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+    document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax" // HAPUS ROLE JUGA
     window.location.href = '/'
   }
 
@@ -82,14 +93,14 @@ export default function InputMobilPage() {
     if(!form.nama_mobil ||!form.merek ||!form.harga ||!form.foto_url_1) return alert("Lengkapi Nama, Merek, Harga & Foto Cover")
 
     setLoading(true)
-    const token = localStorage.getItem('token')
+    const token = getCookie('token') || localStorage.getItem('token') // AMBIL DARI COOKIE JUGA
     if(!token) {
       setLoading(false)
       return alert("Lu belum login bro")
     }
 
     const payload = {
-  ...form,
+ ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
@@ -135,7 +146,7 @@ export default function InputMobilPage() {
         <h1 className="text-2xl font-bold text-yellow-400 flex items-center gap-2"><Car size={24}/> Input Mobil Baru</h1>
         <button
           onClick={handleLogout}
-          className="bg-red-600/20 hover:bg-red-600 border border-red-500/30 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+          className="bg-red-600/20 hover:bg-red-600 border-red-500/30 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
         >
           <LogOut size={18}/> Logout
         </button>
@@ -143,7 +154,7 @@ export default function InputMobilPage() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
         <input name="nama_mobil" placeholder="Nama Mobil *" value={form.nama_mobil} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white" required/>
-        <input name="merek" placeholder="Merek *" value={form.merek} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white" required/>
+        <input name="merek" placeholder="Merek *" value={form.merek} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white" required/>
         <input name="tipe" placeholder="Tipe" value={form.tipe} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white"/>
         <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white"/>
         <input name="kilometer" type="number" placeholder="Kilometer" value={form.kilometer} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white"/>
