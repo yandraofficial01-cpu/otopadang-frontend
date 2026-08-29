@@ -29,23 +29,25 @@ export default function InputMobilPage() {
         const role = localStorage.getItem('role')
 
         if (!t) {
-          window.location.href = '/' // FIX 1: pakai window.location
+          window.location.href = '/'
           return
         }
         if(role?.toLowerCase()!== 'showroom'){
           localStorage.clear()
-          window.location.href = '/' // FIX 1
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax" // HAPUS COOKIE JUGA
+          window.location.href = '/'
           return
         }
       } catch(e) {
         localStorage.clear()
-        window.location.href = '/' // FIX 1
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+        window.location.href = '/'
       } finally {
         setPageLoading(false)
       }
     }
     checkAuth()
-  }, []) // FIX 2: hapus [router]
+  }, [])
 
   const handleChange = (e) => {
     setForm({...form, [e.target.name]: e.target.value})
@@ -53,8 +55,8 @@ export default function InputMobilPage() {
 
   const handleLogout = () => {
     localStorage.clear()
-    document.cookie = "token=; path=/; max-age=0; SameSite=Lax" // FIX 3: hapus cookie
-    window.location.href = '/' // FIX 1: paksa reload ke landing
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax" // FIX UTAMA DISINI
+    window.location.href = '/'
   }
 
   const uploadToCloudinary = async (file, index) => {
@@ -87,7 +89,7 @@ export default function InputMobilPage() {
     }
 
     const payload = {
-   ...form,
+  ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
@@ -111,7 +113,7 @@ export default function InputMobilPage() {
         alert("Gagal [" + res.status + "]: " + (data.detail || "Cek login / BE down"))
       } else {
         alert("Mobil berhasil diinput, menunggu approval admin")
-        window.location.href = '/dashboard/mobil/list' // pakai ini biar refresh data
+        window.location.href = '/dashboard/mobil/list'
       }
     } catch(err) {
       alert("Error: Failed to fetch. Cek CORS BE")
@@ -142,7 +144,7 @@ export default function InputMobilPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
         <input name="nama_mobil" placeholder="Nama Mobil *" value={form.nama_mobil} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white" required/>
         <input name="merek" placeholder="Merek *" value={form.merek} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white" required/>
-        <input name="tipe" placeholder="Tipe" value={form.tipe} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white"/>
+        <input name="tipe" placeholder="Tipe" value={form.tipe} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white"/>
         <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white"/>
         <input name="kilometer" type="number" placeholder="Kilometer" value={form.kilometer} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white"/>
         <input name="harga" type="number" placeholder="Harga *" value={form.harga} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white" required/>
