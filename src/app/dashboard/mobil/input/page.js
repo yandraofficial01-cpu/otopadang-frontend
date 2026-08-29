@@ -1,14 +1,14 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, LogOut, Car } from "lucide-react"
+import { Loader2, LogOut, Car, Plus } from "lucide-react"
 import { Poppins } from 'next/font/google'
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 
 const CLOUD_NAME = "jh0ct5rz"
 const UPLOAD_PRESET = "otopadang_preset"
-const API = "https://otopadang-api.vercel.app" // UDAH DIGANTI KE VERCEL
+const API = "https://otopadang-api.vercel.app" // UDAH DIGANTI
 
 export default function InputMobilPage() {
   const [loading, setLoading] = useState(false)
@@ -24,28 +24,35 @@ export default function InputMobilPage() {
   })
   const router = useRouter()
 
-  // CEK LOGIN + ROLE DULU
+  // CEK LOGIN + ROLE DULU BIAR GAK Muter2
   useEffect(() => {
-    const t = localStorage.getItem('token')
-    const role = localStorage.getItem('role')
+    const checkAuth = () => {
+      try {
+        const t = localStorage.getItem('token')
+        const role = localStorage.getItem('role')
 
-    if (!t) {
-      alert("Silahkan login dulu")
-      router.push('/login-showroom')
-      return
+        if (!t) {
+          router.push('/login-showroom')
+          return
+        }
+        if(role?.toLowerCase()!== 'showroom'){
+          localStorage.clear()
+          alert(`Akses ditolak! Role kamu: ${role}`)
+          router.push('/login-admin')
+          return
+        }
+      } catch(e) {
+        localStorage.clear()
+        router.push('/login-showroom')
+      } finally {
+        setPageLoading(false) // PENTING BIAR GAK STUCK LOADING
+      }
     }
-    if(role?.toLowerCase()!== 'showroom'){
-      alert(`Akses ditolak! Role kamu: ${role}`)
-      localStorage.clear()
-      router.push('/login-admin')
-      return
-    }
-    setPageLoading(false)
+    checkAuth()
   }, [router])
 
   const handleLogout = () => {
-    localStorage.clear() // HAPUS SEMUA BIAR GAK NYANGKUT
-    alert("Logout berhasil")
+    localStorage.clear() // HAPUS SEMUA
     router.push('/login-showroom')
   }
 
@@ -72,10 +79,13 @@ export default function InputMobilPage() {
 
     setLoading(true)
     const token = localStorage.getItem('token')
-    if(!token) return alert("Lu belum login bro")
+    if(!token) {
+      setLoading(false)
+      return alert("Lu belum login bro")
+    }
 
     const payload = {
-     ...form,
+    ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
@@ -101,13 +111,17 @@ export default function InputMobilPage() {
         alert("Mobil berhasil diinput, menunggu approval admin")
         router.push('/dashboard/mobil/list')
       }
-    } catch(err) { alert("Error: Failed to fetch. Cek CORS BE") }
-    setLoading(false)
+    } catch(err) {
+      alert("Error: Failed to fetch. Cek CORS BE")
+    } finally {
+      setLoading(false) // TAMBAH FINALLY BIAR GAK NYANGKUT
+    }
   }
 
   if(pageLoading) return (
     <div className={`${poppins.className} bg-[#0B0B0F] min-h-screen flex items-center justify-center gap-4 text-white`}>
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
+      <p>Cek akses...</p>
     </div>
   )
 
