@@ -1,6 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Loader2, LogOut, Car } from "lucide-react"
 import { Poppins } from 'next/font/google'
 
@@ -22,7 +21,6 @@ export default function InputMobilPage() {
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
   })
-  const router = useRouter()
 
   useEffect(() => {
     const checkAuth = () => {
@@ -31,27 +29,32 @@ export default function InputMobilPage() {
         const role = localStorage.getItem('role')
 
         if (!t) {
-          router.push('/') // kalau belum login balik ke landing
+          window.location.href = '/' // FIX 1: pakai window.location
           return
         }
         if(role?.toLowerCase()!== 'showroom'){
           localStorage.clear()
-          router.push('/') // kalau role salah balik ke landing
+          window.location.href = '/' // FIX 1
           return
         }
       } catch(e) {
         localStorage.clear()
-        router.push('/')
+        window.location.href = '/' // FIX 1
       } finally {
         setPageLoading(false)
       }
     }
     checkAuth()
-  }, [router])
+  }, []) // FIX 2: hapus [router]
+
+  const handleChange = (e) => {
+    setForm({...form, [e.target.name]: e.target.value})
+  }
 
   const handleLogout = () => {
     localStorage.clear()
-    router.push('/') // INI YANG UDAH DIGANTI KE LANDING
+    document.cookie = "token=; path=/; max-age=0; SameSite=Lax" // FIX 3: hapus cookie
+    window.location.href = '/' // FIX 1: paksa reload ke landing
   }
 
   const uploadToCloudinary = async (file, index) => {
@@ -66,6 +69,7 @@ export default function InputMobilPage() {
       const data = await res.json()
       if(data.secure_url){
         setForm(prev => ({...prev, [`foto_url_${index}`]: data.secure_url}))
+        alert(`Foto ${index} berhasil diupload`)
       } else { alert("Gagal Upload Foto: " + JSON.stringify(data)) }
     } catch(e){ alert("Error Cloudinary: " + e.message) }
     setUploading(prev => ({...prev, [index]: false}))
@@ -83,7 +87,7 @@ export default function InputMobilPage() {
     }
 
     const payload = {
-    ...form,
+   ...form,
       tahun: Number(form.tahun) || 0,
       harga: Number(form.harga) || 0,
       harga_kredit: Number(form.harga_kredit) || 0,
@@ -107,7 +111,7 @@ export default function InputMobilPage() {
         alert("Gagal [" + res.status + "]: " + (data.detail || "Cek login / BE down"))
       } else {
         alert("Mobil berhasil diinput, menunggu approval admin")
-        router.push('/dashboard/mobil/list')
+        window.location.href = '/dashboard/mobil/list' // pakai ini biar refresh data
       }
     } catch(err) {
       alert("Error: Failed to fetch. Cek CORS BE")
@@ -119,6 +123,7 @@ export default function InputMobilPage() {
   if(pageLoading) return (
     <div className={`${poppins.className} bg-[#0B0B0F] min-h-screen flex items-center justify-center gap-4 text-white`}>
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
+      <p>Memuat Halaman...</p>
     </div>
   )
 
@@ -128,12 +133,34 @@ export default function InputMobilPage() {
         <h1 className="text-2xl font-bold text-yellow-400 flex items-center gap-2"><Car size={24}/> Input Mobil Baru</h1>
         <button
           onClick={handleLogout}
-          className="bg-red-600/20 hover:bg-red-600 border-red-500/30 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+          className="bg-red-600/20 hover:bg-red-600 border border-red-500/30 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
         >
           <LogOut size={18}/> Logout
         </button>
       </div>
-      {/*...form nya sama kaya punya kamu... */}
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+        <input name="nama_mobil" placeholder="Nama Mobil *" value={form.nama_mobil} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white" required/>
+        <input name="merek" placeholder="Merek *" value={form.merek} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white" required/>
+        <input name="tipe" placeholder="Tipe" value={form.tipe} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white"/>
+        <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white"/>
+        <input name="kilometer" type="number" placeholder="Kilometer" value={form.kilometer} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white"/>
+        <input name="harga" type="number" placeholder="Harga *" value={form.harga} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white" required/>
+        <input name="lokasi" placeholder="Lokasi" value={form.lokasi} onChange={handleChange} className="p-3 bg-gray-900 border-gray-700 rounded-lg text-white"/>
+        <input name="no_wa_showroom" placeholder="No WA Showroom" value={form.no_wa_showroom} onChange={handleChange} className="p-3 bg-gray-900 border border-gray-700 rounded-lg text-white"/>
+        
+        <textarea name="deskripsi" placeholder="Deskripsi" value={form.deskripsi} onChange={handleChange} className="md:col-span-2 p-3 bg-gray-900 border-gray-700 rounded-lg text-white h-24"></textarea>
+
+        <div>
+          <label className="text-sm text-gray-400">Foto Cover *</label>
+          <input type="file" accept="image/*" onChange={(e) => uploadToCloudinary(e.target.files[0], 1)} className="w-full text-sm mt-1"/>
+          {uploading[1] && <Loader2 className="animate-spin w-4 h-4 mt-1"/>}
+        </div>
+
+        <button type="submit" disabled={loading} className="md:col-span-2 w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 disabled:opacity-50 flex items-center justify-center gap-2">
+          {loading && <Loader2 className="animate-spin" size={20}/>} Simpan Mobil
+        </button>
+      </form>
     </div>
   )
 }
