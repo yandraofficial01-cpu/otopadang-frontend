@@ -11,7 +11,7 @@ import {
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'] })
 
-const API_URL = 'https://otopadang-api.vercel.app'
+const API_URL = 'https://otopadang-api.vercel.app' // UDAH HARDCODE
 
 export default function AdminPage() {
   const [token, setToken] = useState('')
@@ -34,16 +34,21 @@ export default function AdminPage() {
     localStorage.setItem('admin_theme', newTheme)
   }
   const bg = theme === 'dark'? 'bg-[#0B0B0F]' : 'bg-[#F8F9FA]'
-  const card = theme === 'dark'? 'bg-[#1a1a20]/60 border-gray-800' : 'bg-white/70 border-gray-200'
+  const card = theme === 'dark'? 'bg-[#1a1a20]/60 border border-gray-800' : 'bg-white/70 border-gray-200'
   const text = theme === 'dark'? 'text-white' : 'text-gray-800'
   const textMuted = theme === 'dark'? 'text-gray-400' : 'text-gray-500'
 
+  // INI YG DI FIX - TAMBAH HEADER
   const fetchWithTimeout = async (url, t, timeout = 20000) => {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeout)
     try {
       const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${t}` },
+        headers: {
+          'Authorization': `Bearer ${t}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         signal: controller.signal,
         cache: 'no-store'
       })
@@ -182,7 +187,7 @@ export default function AdminPage() {
   }
 
   if(loading) return (
-    <div className={`${bg} ${text} min-h-screen flex-col items-center justify-center gap-4 ${poppins.className}`}>
+    <div className={`${bg} ${text} min-h-screen flex flex-col items-center justify-center gap-4 ${poppins.className}`}>
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
       <p className="animate-pulse font-semibold">Loading Panel Admin...</p>
       <button onClick={handleLogout} className="mt-4 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2"><LogOut size={18}/> Force Logout</button>
@@ -214,7 +219,7 @@ export default function AdminPage() {
             <ShieldCheck size={32} className="inline-block mr-2 text-yellow-400"/> OTO PADANG ADMIN
           </h1>
           <div className="flex items-center gap-3">
-            <button onClick={toggleTheme} className={`${card} p-2 rounded-lg border backdrop-blur-sm`}>
+            <button onClick={toggleTheme} className={`${card} p-2 rounded-lg backdrop-blur-sm`}>
               {theme === 'dark'? <Sun size={20}/> : <Moon size={20}/>}
             </button>
             <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 border-red-500/30 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2 backdrop-blur-sm">
@@ -247,7 +252,7 @@ export default function AdminPage() {
         </div>
 
         {/* MOBIL PENDING */}
-        <div className="mb-8 p-6 border border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent backdrop-blur-sm">
+        <div className="mb-8 p-6 border-yellow-500/30 rounded-2xl bg-gradient-to-br from-yellow-900/10 to-transparent backdrop-blur-sm">
           <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><Flame size={20}/> Review Mobil Baru ({mobilPending.length})</h2>
           {mobilPending.length === 0? <p className={textMuted}>Tidak ada mobil baru - Total di DB: {allMobil.length}</p> :
             mobilPending.slice(0, 10).map(m => (
@@ -293,7 +298,7 @@ export default function AdminPage() {
           <Link href="/admin/upload-rumah" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2 backdrop-blur-sm`}><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
           <Link href="/admin/blog" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2 backdrop-blur-sm`}><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
           <Link href="/admin/register-showroom" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2 backdrop-blur-sm`}><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
-          <Link href="/admin/approve-showroom" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2 backdrop-blur-sm`}><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
+          <Link href="/admin/approve-showroom" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2 backdrop-blur-sm`}><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
         </div>
       </div>
     </div>
