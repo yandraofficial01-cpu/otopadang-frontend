@@ -22,7 +22,7 @@ export default function LoginAdminPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/admin/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, { // FIX: DARI /admin/login JADI /auth/login
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -51,17 +51,17 @@ export default function LoginAdminPage() {
         return
       }
 
-      // FIX: SET 4 INI SEMUA
+      // SET SEMUA
       localStorage.setItem('token', accessToken)
       localStorage.setItem('role', user.role)
       localStorage.setItem('email', user.email)
       localStorage.setItem('showroom_id', user.showroom_id || '')
 
       document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`
-      document.cookie = `role=${user.role}; path=/; max-age=86400; SameSite=Lax` // INI PENTING BANGET
+      document.cookie = `role=${user.role}; path=/; max-age=86400; SameSite=Lax`
 
       alert("Login berhasil!") 
-      window.location.href = '/admin' // GANTI DARI router.push KE INI
+      window.location.href = '/admin'
       
     } catch (error) {
       console.error(error)
@@ -77,7 +77,7 @@ export default function LoginAdminPage() {
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin Otopadang</h1>
         
         <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
         
         <button disabled={loading} className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50 flex items-center justify-center gap-2">
           {loading ? <Loader2 className="animate-spin" size={20}/> : <LogIn size={20}/>}
