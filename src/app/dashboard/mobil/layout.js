@@ -1,4 +1,4 @@
-import AutoLogout from "@/component/autologout";
+import AutoLogout from "../../component/autologout";
 
 export default function MobilLayout({ children }) {
   return (
@@ -6,5 +6,5 @@ export default function MobilLayout({ children }) {
       <AutoLogout />
       {children}
     </div>
-  )
+  );
 }
