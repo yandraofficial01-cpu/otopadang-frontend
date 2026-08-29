@@ -1,24 +1,26 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
-import { X, MapPin, Home, Phone, Ruler, Maximize } from "lucide-react";
+import { X, MapPin, Home, Phone, Ruler, Maximize, Share2, MessageCircle } from "lucide-react";
 
 const API_URL = "https://otopadang-api.vercel.app";
 
 const DAERAH_SUMBAR = ["Semua Lokasi","Kota Padang", "Kota Bukittinggi", "Kota Payakumbuh", "Kota Pariaman", "Kota Padang Panjang", "Kota Solok", "Kota Sawahlunto","Kab. Padang Pariaman", "Kab. Pesisir Selatan", "Kab. Agam", "Kab. Tanah Datar", "Kab. Lima Puluh Kota","Kab. Pasaman", "Kab. Pasaman Barat", "Kab. Solok", "Kab. Solok Selatan", "Kab. Sijunjung", "Kab. Dharmasraya", "Kab. Kepulauan Mentawai"];
 
-const RANGE_HARGA = [ // UDAH DIBENERIN SEMUA NOL NYA
+const RANGE_HARGA = [ // UDAH DIBENERIN 100%
   { label: "Semua Harga", min: 0, max: Infinity },
   { label: "100 Juta - 200 Juta", min: 100000000, max: 200000000 },
   { label: "200 Juta - 300 Juta", min: 200000000, max: 300000000 },
   { label: "300 Juta - 400 Juta", min: 300000000, max: 400000000 },
   { label: "400 Juta - 500 Juta", min: 400000000, max: 500000000 },
-  { label: "500 Juta - 600 Juta", min: 500000, max: 600000 },
-  { label: "600 Juta - 700 Juta", min: 600000, max: 700000 },
-  { label: "700 Juta - 800 Juta", min: 700000000, max: 800000 },
-  { label: "800 Juta - 900 Juta", min: 800000000, max: 900000000 },
-  { label: "900 Juta - 1 Miliar", min: 900000000, max: 1000000 },
-  { label: "Di atas 1 Miliar", min: 1000000000, max: Infinity },
+  { label: "500 Juta - 600 Juta", min: 500000000, max: 600000 }, // FIX
+  { label: "600 Juta - 700 Juta", min: 600000000, max: 700000000 }, // FIX
+  { label: "700 Juta - 800 Juta", min: 700000, max: 800000000 }, // FIX
+  { label: "800 Juta - 900 Juta", min: 800000, max: 900000000 },
+  { label: "900 Juta - 1 Miliar", min: 900000000, max: 1000000000 }, // FIX
+  { label: "Di atas 1 Miliar", min: 1000000, max: Infinity },
 ];
+
+const TABS = ["Semua", "Ready", "Pre-Project", "DP Ringan"];
 
 function DetailModal({ rumah, onClose }) {
   if(!rumah) return null;
@@ -33,7 +35,7 @@ function DetailModal({ rumah, onClose }) {
       <div className="max-w-5xl mx-auto bg-[#1A1A1F] rounded-2xl border border-yellow-400/20 my-8" onClick={e => e.stopPropagation()}>
         <div className="relative">
           <img src={images[0]} className="w-full h-96 object-cover rounded-t-2xl" alt=""/>
-          <button onClick={onClose} className="absolute top-4 right-4 bg-black/60 p-2 rounded-full"><X/></button>
+          <button onClick={onClose} className="absolute top-4 right-4 bg-black/60 p-2 rounded-full text-white"><X/></button>
         </div>
         <div className="p-6 md:p-8">
           <h2 className="text-3xl font-bold text-yellow-400">{rumah.nama_rumah}</h2>
@@ -88,6 +90,7 @@ export default function RumahPage() {
   const [filterLokasi, setFilterLokasi] = useState("Semua Lokasi");
   const [filterLokasiDetail, setFilterLokasiDetail] = useState("");
   const [filterHarga, setFilterHarga] = useState(RANGE_HARGA[0]);
+  const [activeTab, setActiveTab] = useState("Semua");
 
   useEffect(() => {
     fetch(`${API_URL}/rumah/all-public`, { cache: 'no-store' })
@@ -97,7 +100,13 @@ export default function RumahPage() {
   }, []);
 
   const filteredRumah = useMemo(() => {
-    return rumahList.filter(r => {
+    let data = rumahList;
+    // Filter Tab
+    if(activeTab !== "Semua") {
+      data = data.filter(r => r.status?.toLowerCase().includes(activeTab.toLowerCase().replace("-", "")))
+    }
+    // Filter lainnya
+    return data.filter(r => {
       const matchSearch = r.nama_rumah?.toLowerCase().includes(searchTerm.toLowerCase());
       const keywordLokasi = filterLokasi.replace("Kota ", "").replace("Kab. ", "").toLowerCase();
       const matchLokasi = filterLokasi === "Semua Lokasi" || r.alamat?.toLowerCase().includes(keywordLokasi);
@@ -105,32 +114,80 @@ export default function RumahPage() {
       const matchHarga = (r.harga || 0) >= filterHarga.min && (r.harga || 0) < filterHarga.max;
       return matchSearch && matchLokasi && matchLokasiDetail && matchHarga;
     });
-  }, [rumahList, searchTerm, filterLokasi, filterLokasiDetail, filterHarga]);
+  }, [rumahList, searchTerm, filterLokasi, filterLokasiDetail, filterHarga, activeTab]);
+
+  const pesanWA = (item) => {
+    const noWa = item.wa_number || "628979879518";
+    const text = `Halo Otopadang, saya tertarik dengan *${item.nama_rumah}*`;
+    window.open(`https://wa.me/${noWa}?text=${encodeURIComponent(text)}`, '_blank');
+  }
+  const handleShare = (item) => {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link disalin")
+  }
 
   return (
-    <main className="min-h-screen bg-[#0B0B0F] container mx-auto max-w-7xl px-4 py-16">
+    <main className="min-h-screen bg-[#0B0B0F] text-white pb-20">
       <DetailModal rumah={selectedRumah} onClose={() => setSelectedRumah(null)} />
-      <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">Temukan Rumah Impianmu</h1>
-      <div className="bg-[#1A1A1F] p-4 rounded-xl border border-gray-800 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4"> {/* FIX: TAMBAH grid */}
-        <input type="text" placeholder="Cari nama rumah..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2" />
-        <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2">{DAERAH_SUMBAR.map(lok => <option key={lok} value={lok}>{lok}</option>)}</select>
-        <input type="text" placeholder="Contoh: Kuranji, Air Pacah" value={filterLokasiDetail} onChange={(e) => setFilterLokasiDetail(e.target.value)} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2" />
-        <select value={JSON.stringify(filterHarga)} onChange={(e) => setFilterHarga(JSON.parse(e.target.value))} className="bg-[#0B0B0F] border border-gray-700 rounded-lg px-4 py-2">{RANGE_HARGA.map(range => <option key={range.label} value={JSON.stringify(range)}>{range.label}</option>)}</select>
+      
+      <div className="sticky top-0 bg-[#0B0B0F] z-10 p-4 border-b border-gray-800">
+        {/* TAB FILTER KAYA DI SS */}
+        <div className="flex bg-[#1A1A1F] p-1 rounded-lg">
+          {TABS.map(tab => (
+            <button 
+              key={tab} 
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2 text-sm font-semibold rounded-md ${activeTab === tab ? 'bg-blue-500 text-white' : 'text-gray-400'}`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        {/* FILTER 4 KOLOM */}
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2">
+          <input type="text" placeholder="Cari nama rumah..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[#1A1A1F] border-gray-700 rounded-lg px-4 py-2" />
+          <select value={filterLokasi} onChange={(e) => setFilterLokasi(e.target.value)} className="bg-[#1A1A1F] border border-gray-700 rounded-lg px-4 py-2">{DAERAH_SUMBAR.map(lok => <option key={lok} value={lok}>{lok}</option>)}</select>
+          <input type="text" placeholder="Contoh: Kuranji" value={filterLokasiDetail} onChange={(e) => setFilterLokasiDetail(e.target.value)} className="bg-[#1A1A1F] border-gray-700 rounded-lg px-4 py-2" />
+          <select value={JSON.stringify(filterHarga)} onChange={(e) => setFilterHarga(JSON.parse(e.target.value))} className="bg-[#1A1A1F] border border-gray-700 rounded-lg px-4 py-2">{RANGE_HARGA.map(range => <option key={range.label} value={JSON.stringify(range)}>{range.label}</option>)}</select>
+        </div>
       </div>
-      {loading && <p className="text-center">Loading...</p>}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+      {loading && <p className="text-center p-10">Loading...</p>}
+      
+      <div className="p-4 space-y-4">
         {filteredRumah.map((r) => (
-          <div key={r.id} onClick={() => setSelectedRumah(r)} className="bg-[#1A1A1F] rounded-xl overflow-hidden border border-gray-800 hover:border-yellow-400 cursor-pointer group">
-            <ImageSlider images={[r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5, r.foto_url_6, r.foto_url_7, r.foto_url_8]} />
-            <div className="p-4">
-              <h3 className="font-bold text-lg text-white group-hover:text-yellow-400">{r.nama_rumah}</h3>
-              <p className="text-gray-400 text-sm flex items-center gap-1"><MapPin size={12}/> {r.alamat}</p>
-              <p className="text-yellow-400 font-bold text-xl mt-2">Rp {r.harga?.toLocaleString('id-ID')}</p>
-              <p className="text-gray-400 text-sm mt-1">{r.luas_bangunan}m² | {r.tipe} | LT: {r.luas_tanah}m²</p>
+          <div key={r.id} className="bg-[#1A1A1F] rounded-2xl border-2 border-blue-500/50 p-3">
+            <div className="flex justify-between items-start mb-2">
+              <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-lg">{r.status?.toUpperCase() || "READY"}</span>
+              <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">🔥 HOT</span>
+            </div>
+
+            <div onClick={() => setSelectedRumah(r)} className="cursor-pointer">
+              <h3 className="text-xl font-bold">{r.nama_rumah}</h3>
+              <div className="text-gray-300 text-sm mt-2 space-y-1">
+                <p><b>Harga:</b>{(r.harga / 1000000).toFixed(0)}jt</p>
+                <p><b>Luas:</b>{r.luas_bangunan}m²</p>
+                <p className="flex items-center gap-1"><MapPin size={12}/><b>Lokasi:</b>{r.alamat}</p>
+              </div>
+              <ImageSlider images={[r.foto_url_1, r.foto_url_2, r.foto_url_3, r.foto_url_4, r.foto_url_5, r.foto_url_6, r.foto_url_7, r.foto_url_8]} />
+            </div>
+
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => pesanWA(r)} className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                <Phone size={16}/> Hubungi via WhatsApp
+              </button>
+              <button onClick={() => handleShare(r)} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg">
+                <Share2 size={16}/>
+              </button>
             </div>
           </div>
         ))}
       </div>
+      
+      {/* FLOATING WA */}
+      <a href="https://wa.me/628979879518" target="_blank" className="fixed bottom-6 right-6 bg-green-500 p-4 rounded-full shadow-lg">
+        <MessageCircle size={28} fill="white"/>
+      </a>
     </main>
   )
 }
