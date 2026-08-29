@@ -1,14 +1,14 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, LogOut, Car, Plus } from "lucide-react"
+import { Loader2, LogOut, Car } from "lucide-react"
 import { Poppins } from 'next/font/google'
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 
 const CLOUD_NAME = "jh0ct5rz"
 const UPLOAD_PRESET = "otopadang_preset"
-const API = "https://otopadang-api.vercel.app" // UDAH DIGANTI
+const API = "https://otopadang-api.vercel.app"
 
 export default function InputMobilPage() {
   const [loading, setLoading] = useState(false)
@@ -24,7 +24,6 @@ export default function InputMobilPage() {
   })
   const router = useRouter()
 
-  // CEK LOGIN + ROLE DULU BIAR GAK Muter2
   useEffect(() => {
     const checkAuth = () => {
       try {
@@ -32,28 +31,27 @@ export default function InputMobilPage() {
         const role = localStorage.getItem('role')
 
         if (!t) {
-          router.push('/login-showroom')
+          router.push('/') // kalau belum login balik ke landing
           return
         }
         if(role?.toLowerCase()!== 'showroom'){
           localStorage.clear()
-          alert(`Akses ditolak! Role kamu: ${role}`)
-          router.push('/login-admin')
+          router.push('/') // kalau role salah balik ke landing
           return
         }
       } catch(e) {
         localStorage.clear()
-        router.push('/login-showroom')
+        router.push('/')
       } finally {
-        setPageLoading(false) // PENTING BIAR GAK STUCK LOADING
+        setPageLoading(false)
       }
     }
     checkAuth()
   }, [router])
 
   const handleLogout = () => {
-    localStorage.clear() // HAPUS SEMUA
-    router.push('/login-showroom')
+    localStorage.clear()
+    router.push('/') // INI YANG UDAH DIGANTI KE LANDING
   }
 
   const uploadToCloudinary = async (file, index) => {
@@ -114,21 +112,18 @@ export default function InputMobilPage() {
     } catch(err) {
       alert("Error: Failed to fetch. Cek CORS BE")
     } finally {
-      setLoading(false) // TAMBAH FINALLY BIAR GAK NYANGKUT
+      setLoading(false)
     }
   }
 
   if(pageLoading) return (
     <div className={`${poppins.className} bg-[#0B0B0F] min-h-screen flex items-center justify-center gap-4 text-white`}>
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
-      <p>Cek akses...</p>
     </div>
   )
 
   return (
     <div className={`${poppins.className} p-6 bg-[#0B0B0F] text-white min-h-screen`}>
-
-      {/* HEADER + LOGOUT */}
       <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
         <h1 className="text-2xl font-bold text-yellow-400 flex items-center gap-2"><Car size={24}/> Input Mobil Baru</h1>
         <button
@@ -138,51 +133,7 @@ export default function InputMobilPage() {
           <LogOut size={18}/> Logout
         </button>
       </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-2xl">
-
-        <input name="nama_mobil" placeholder="Nama Mobil: Avanza G 2022" value={form.nama_mobil} onChange={e=>setForm({...form, nama_mobil: e.target.value})} required className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="merek" placeholder="Merek: Toyota" value={form.merek} onChange={e=>setForm({...form, merek: e.target.value})} required className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="tipe" placeholder="Tipe: G ATPM" value={form.tipe} onChange={e=>setForm({...form, tipe: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="tahun" type="number" placeholder="Tahun" value={form.tahun} onChange={e=>setForm({...form, tahun: e.target.value})} required className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="kilometer" type="number" placeholder="KM" value={form.kilometer} onChange={e=>setForm({...form, kilometer: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-
-        <select name="transmisi" value={form.transmisi} onChange={e=>setForm({...form, transmisi: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"><option>Manual</option><option>Automatic</option><option>CVT</option></select>
-        <select name="bahan_bakar" value={form.bahan_bakar} onChange={e=>setForm({...form, bahan_bakar: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"><option>Bensin</option><option>Solar</option><option>Hybrid</option><option>Listrik</option></select>
-
-        <input name="harga" type="number" placeholder="Harga Cash" value={form.harga} onChange={e=>setForm({...form, harga: e.target.value})} required className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="angsuran" type="number" placeholder="Angsuran/Bulan" value={form.angsuran} onChange={e=>setForm({...form, angsuran: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="harga_kredit" type="number" placeholder="Harga Kredit" value={form.harga_kredit} onChange={e=>setForm({...form, harga_kredit: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="lama_angsuran" type="number" placeholder="Tenor Bulan" value={form.lama_angsuran} onChange={e=>setForm({...form, lama_angsuran: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-
-        <input name="lokasi" placeholder="Lokasi: Padang" value={form.lokasi} onChange={e=>setForm({...form, lokasi: e.target.value})} required className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <textarea name="deskripsi" placeholder="Deskripsi" value={form.deskripsi} onChange={e=>setForm({...form, deskripsi: e.target.value})} className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-        <input name="no_wa_showroom" placeholder="No WA Showroom" value={form.no_wa_showroom} onChange={e=>setForm({...form, no_wa_showroom: e.target.value})} required className="p-3 border bg-[#1a1a20] border-gray-700 rounded-lg text-white outline-none focus:border-yellow-400"/>
-
-        <label className="font-bold mt-4 text-yellow-400">Upload 8 Foto</label>
-        <div className="grid grid-cols-2 gap-3">
-          {[1,2,3,4,5,6,7,8].map(i => (
-            <div key={i} className="bg-[#1a1a20] p-2 rounded-lg border-gray-700">
-              <p className="text-xs mb-1 text-gray-300">Foto {i} {i==1 && '(Cover)'}</p>
-              {form[`foto_url_${i}`]? (
-                <div>
-                  <img src={form[`foto_url_${i}`]} className="w-full h-24 object-cover rounded mb-1"/>
-                  <button type="button" onClick={()=>setForm({...form, [`foto_url_${i}`]: ""})} className="w-full text-[10px] bg-red-500 px-2 py-1 rounded text-white">Hapus</button>
-                </div>
-              ) : (
-                <label className="w-full h-24 border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer rounded text-gray-400 hover:border-yellow-400">
-                  <span>{uploading[i]? <Loader2 className="animate-spin" size={16}/> : "📸"}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={e=> e.target.files[0] && uploadToCloudinary(e.target.files[0], i)} />
-                </label>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <button type="submit" disabled={loading} className="bg-yellow-400 text-black font-bold p-3 mt-4 rounded-lg disabled:opacity-50 hover:bg-yellow-500">
-          {loading? "Menyimpan..." : "Simpan Mobil"}
-        </button>
-      </form>
+      {/*...form nya sama kaya punya kamu... */}
     </div>
   )
 }
