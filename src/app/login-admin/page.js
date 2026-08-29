@@ -1,13 +1,16 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Loader2, LogIn } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = 'https://otopadang-api.vercel.app' // UDAH DI HARDCODE
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleLogoutDulu = () => {
     localStorage.clear()
@@ -41,25 +44,28 @@ export default function LoginAdminPage() {
       const user = data.user
 
       if(!accessToken){
-        alert('Token kosong!')
+        alert('Token kosong! Cek BE lu')
         setLoading(false)
         return
       }
 
       if(user.role.toLowerCase() !== 'admin'){
-        alert(`Akses ditolak! Akun kamu role: ${user.role}`)
+        alert(`Akses ditolak! Akun kamu role: ${user.role}. Harus 'admin'`)
         setLoading(false)
         return
       }
 
+      // SIMPEN KE LOCALSTORAGE
       localStorage.setItem('token', accessToken)
       localStorage.setItem('role', user.role)
       localStorage.setItem('email', user.email)
-      localStorage.setItem('showroom_id', user.showroom_id)
+      localStorage.setItem('showroom_id', user.showroom_id || '')
       
+      // SIMPEN KE COOKIE JUGA BUAT JAGA2
       document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
 
-      window.location.replace('/admin')
+      // LEMPAR KE DASHBOARD
+      router.push('/admin')
       
     } catch (error) {
       console.error(error)
@@ -86,14 +92,15 @@ export default function LoginAdminPage() {
           placeholder="Password" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
-          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         
         <button 
           disabled={loading} 
-          className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50"
+          className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50 flex items-center justify-center gap-2"
         >
+          {loading ? <Loader2 className="animate-spin" size={20}/> : <LogIn size={20}/>}
           {loading ? 'Loading...' : 'Masuk sebagai Admin'}
         </button>
 
