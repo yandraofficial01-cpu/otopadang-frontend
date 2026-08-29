@@ -1,4 +1,4 @@
-import AutoLogout from "@/components/AutoLogout";
+import AutoLogout from "@/component/autologout";
 
 export const metadata = {
   title: "Admin Panel - Otopadang",
