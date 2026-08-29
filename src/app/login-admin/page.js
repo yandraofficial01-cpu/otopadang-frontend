@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Loader2, LogIn } from 'lucide-react'
 
 const API_URL = 'https://otopadang-api.vercel.app'
@@ -10,11 +9,11 @@ export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handleLogoutDulu = () => {
     localStorage.clear()
-    document.cookie = "token=; path=/; max-age=0"
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+    document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
     alert('Sudah logout. Silakan login lagi sebagai admin')
     window.location.reload()
   }
@@ -52,14 +51,17 @@ export default function LoginAdminPage() {
         return
       }
 
+      // FIX: SET 4 INI SEMUA
       localStorage.setItem('token', accessToken)
       localStorage.setItem('role', user.role)
       localStorage.setItem('email', user.email)
       localStorage.setItem('showroom_id', user.showroom_id || '')
-      document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
+
+      document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`
+      document.cookie = `role=${user.role}; path=/; max-age=86400; SameSite=Lax` // INI PENTING BANGET
 
       alert("Login berhasil!") 
-      router.push('/admin') // GANTI JADI /dashboard/admin KALO FOLDER NYA ITU
+      window.location.href = '/admin' // GANTI DARI router.push KE INI
       
     } catch (error) {
       console.error(error)
