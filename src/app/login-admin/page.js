@@ -33,6 +33,7 @@ export default function LoginAdminPage() {
       })
       
       const data = await res.json()
+      console.log("RESPONSE LOGIN:", data) // BUAT DEBUG
 
       if(!res.ok){
         alert('Login gagal: ' + (data.detail || 'Email atau password salah'))
@@ -49,6 +50,9 @@ export default function LoginAdminPage() {
         return
       }
 
+      // INI KUNCINYA - KITA LIAT ROLE ASLINYA APA
+      alert(`Role kamu: ${user.role}`) 
+
       if(user.role.toLowerCase() !== 'admin'){
         alert(`Akses ditolak! Akun kamu role: ${user.role}. Harus 'admin'`)
         setLoading(false)
@@ -64,6 +68,7 @@ export default function LoginAdminPage() {
       // SIMPEN KE COOKIE JUGA BUAT JAGA2
       document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
 
+      alert("Login berhasil! Token tersimpan. Pindah ke dashboard...") // DEBUG
       // LEMPAR KE DASHBOARD
       router.push('/admin')
       
