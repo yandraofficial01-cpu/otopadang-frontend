@@ -6,13 +6,13 @@ export default function AutoLogout() {
   const router = useRouter()
   const pathname = usePathname()
   const timer = useRef(null)
-  const LOGOUT_TIME = 30 * 60 * 1000 // 30 menit
+  const LOGOUT_TIME = 30 * 60 * 1000 // 30 menit ✅
 
   const logout = () => {
     localStorage.clear()
     document.cookie = "token=; path=/; max-age=0"
     alert('Sesi habis. Silakan login ulang')
-    router.push('/login-admin')
+    router.push('/login-admin') // ✅
   }
 
   const resetTimer = () => {
@@ -29,13 +29,12 @@ export default function AutoLogout() {
 
     const handleVisibility = () => {
       if(document.visibilityState === 'hidden') {
-        logout() // pindah aplikasi langsung logout
+        logout() // ✅ pindah aplikasi langsung logout
       } else {
         resetTimer()
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
-
     resetTimer()
 
     return () => {
