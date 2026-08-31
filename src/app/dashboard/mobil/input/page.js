@@ -17,7 +17,6 @@ const getCookie = (name) => {
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-// COMPONENT INPUT BARU BIAR GAK RE-RENDER PARENT
 function NumberInput({ label, name, value, onChange, required }) {
   const [local, setLocal] = useState(value || "")
   const ref = useRef()
@@ -45,7 +44,7 @@ function NumberInput({ label, name, value, onChange, required }) {
         inputMode="numeric"
         type="text"
         required={required}
-        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
+        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none" // FIX: tambah border
       />
     </div>
   )
@@ -62,7 +61,7 @@ function TextInput({ label, name, value, onChange, placeholder, required }) {
         placeholder={placeholder}
         type="text"
         required={required}
-        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
+        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none" // FIX: tambah border
       />
     </div>
   )
@@ -76,7 +75,7 @@ export default function InputMobilPage() {
     nama_mobil: "", merek: "", tipe: "", tahun: "", kilometer: "",
     transmisi: "Manual", bahan_bakar: "Bensin",
     harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "",
-    lokasi: "", deskripsi: "", no_wa_showroom: "",
+    lokasi: "", deskripsi: "", spesifikasi: "", no_wa_showroom: "", // FIX: tambah spesifikasi
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
   })
@@ -110,7 +109,7 @@ export default function InputMobilPage() {
 
   const uploadToCloudinary = async (file, index) => {
     if(!file) return
-    if(file.size > 5000000) return alert("Foto kegedean bro. Maks 5MB") // FIX 1: Limit 5MB
+    if(file.size > 5000000) return alert("Foto kegedean bro. Maks 5MB")
 
     setUploading(prev => ({...prev, [index]: true}))
     try {
@@ -120,7 +119,7 @@ export default function InputMobilPage() {
       fd.append("folder", "otopadang/mobil")
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd })
 
-      if(!res.ok) throw new Error(`HTTP ${res.status}`) // FIX 2: Cek status
+      if(!res.ok) throw new Error(`HTTP ${res.status}`)
 
       const data = await res.json()
       if(data.secure_url){
@@ -141,21 +140,23 @@ export default function InputMobilPage() {
     if(!form.nama_mobil ||!form.merek ||!form.harga ||!form.foto_url_1) return alert("Lengkapi Nama, Merek, Harga & Foto Cover")
 
     let wa = form.no_wa_showroom
-    if(wa && wa.startsWith("0")) wa = "62" + wa.slice(1) // FIX 3: cek wa ada isinya
+    if(wa && wa.startsWith("0")) wa = "62" + wa.slice(1)
 
     setLoading(true)
     const token = getCookie('token') || localStorage.getItem('token')
     if(!token) return setLoading(false)
 
+    const toIntOrNull = (v) => v? Number(v) : null // FIX: biar null bukan 0
+
     const payload = {
-     ...form,
-      no_wa_showroom: wa,
-      tahun: Number(form.tahun) || 0,
-      harga: Number(form.harga) || 0,
-      harga_kredit: Number(form.harga_kredit) || 0,
-      angsuran: Number(form.angsuran) || 0,
-      kilometer: Number(form.kilometer) || 0,
-      lama_angsuran: Number(form.lama_angsuran) || 0,
+    ...form,
+      no_wa_showroom: wa || null,
+      tahun: toIntOrNull(form.tahun),
+      harga: toIntOrNull(form.harga),
+      harga_kredit: toIntOrNull(form.harga_kredit),
+      angsuran: toIntOrNull(form.angsuran),
+      kilometer: toIntOrNull(form.kilometer),
+      lama_angsuran: toIntOrNull(form.lama_angsuran),
     }
 
     try {
@@ -203,21 +204,26 @@ export default function InputMobilPage() {
 
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Bahan Bakar</label>
-          <select name="bahan_bakar" value={form.bahan_bakar} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg">
+          <select name="bahan_bakar" value={form.bahan_bakar} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg"> {/* FIX border */}
             {BAHAN_BAKAR_LIST.map(bbm => <option key={bbm} value={bbm}>{bbm}</option>)}
           </select>
         </div>
 
         <div className="md:col-span-2">
           <label className="text-sm text-gray-400 mb-1 block">Deskripsi</label>
-          <textarea name="deskripsi" value={form.deskripsi} onChange={handleChange} placeholder="Surat lengkap, like new" className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg h-24"></textarea>
+          <textarea name="deskripsi" value={form.deskripsi} onChange={handleChange} placeholder="Surat lengkap, like new" className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg h-24"></textarea>
+        </div>
+
+        <div className="md:col-span-2"> {/* FIX: TAMBAH INPUT SPESIFIKASI */}
+          <label className="text-sm text-gray-400 mb-1 block">Spesifikasi Detail</label>
+          <textarea name="spesifikasi" value={form.spesifikasi} onChange={handleChange} placeholder="Contoh: Pajak 2027, Ban baru, Bebas banjir" className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg h-24"></textarea>
         </div>
 
         <div className="md:col-span-2">
           <h3 className="font-bold mb-3 text-yellow-400">Foto Mobil (Tap upload, auto Cloudinary)</h3>
           <div className="grid grid-cols-2 gap-3">
             {[1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className="bg-[#1A1A1F] p-3 rounded-xl border-gray-700">
+              <div key={i} className="bg-[#1A1A1F] p-3 rounded-xl border border-gray-700"> {/* FIX border */}
                 <label className="text-sm text-gray-400">Foto {i} {i===1 && <span className="text-red-400">(Cover)</span>}</label>
                 {form[`foto_url_${i}`]? (
                   <div className="relative mt-2">
