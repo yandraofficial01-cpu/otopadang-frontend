@@ -18,24 +18,24 @@ const getCookie = (name) => {
 }
 
 // COMPONENT INPUT BARU BIAR GAK RE-RENDER PARENT
-function NumberInput({ label, name, value, onChange }) {
-  const [local, setLocal] = useState(value)
+function NumberInput({ label, name, value, onChange, required }) {
+  const [local, setLocal] = useState(value || "")
   const ref = useRef()
 
-  useEffect(() => { setLocal(value) }, [value])
+  useEffect(() => { setLocal(value || "") }, [value])
 
   const handleLocalChange = (e) => {
     const onlyNums = e.target.value.replace(/[^0-9]/g, '')
-    setLocal(onlyNums) // update local dulu biar lancar
+    setLocal(onlyNums)
   }
 
   const handleBlur = () => {
-    onChange({ target: { name, value: local } }) // baru update parent pas blur
+    onChange({ target: { name, value: local } })
   }
 
   return (
     <div>
-      <label className="text-sm text-gray-400 mb-1 block">{label}</label>
+      <label className="text-sm text-gray-400 mb-1 block">{label} {required && <span className="text-red-400">*</span>}</label>
       <input
         ref={ref}
         name={name}
@@ -44,22 +44,24 @@ function NumberInput({ label, name, value, onChange }) {
         onBlur={handleBlur}
         inputMode="numeric"
         type="text"
+        required={required}
         className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
       />
     </div>
   )
 }
 
-function TextInput({ label, name, value, onChange, placeholder }) {
+function TextInput({ label, name, value, onChange, placeholder, required }) {
   return (
     <div>
-      <label className="text-sm text-gray-400 mb-1 block">{label}</label>
+      <label className="text-sm text-gray-400 mb-1 block">{label} {required && <span className="text-red-400">*</span>}</label>
       <input
         name={name}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         type="text"
+        required={required}
         className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
       />
     </div>
@@ -108,6 +110,8 @@ export default function InputMobilPage() {
 
   const uploadToCloudinary = async (file, index) => {
     if(!file) return
+    if(file.size > 5000000) return alert("Foto kegedean bro. Maks 5MB") // FIX 1: Limit 5MB
+
     setUploading(prev => ({...prev, [index]: true}))
     try {
       const fd = new FormData()
@@ -115,10 +119,18 @@ export default function InputMobilPage() {
       fd.append("upload_preset", UPLOAD_PRESET)
       fd.append("folder", "otopadang/mobil")
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: fd })
+
+      if(!res.ok) throw new Error(`HTTP ${res.status}`) // FIX 2: Cek status
+
       const data = await res.json()
-      if(data.secure_url) setForm(prev => ({...prev, [`foto_url_${index}`]: data.secure_url}))
-      else alert("Gagal Upload Foto")
-    } catch(e){ alert("Error Cloudinary: " + e.message) }
+      if(data.secure_url){
+        setForm(prev => ({...prev, [`foto_url_${index}`]: data.secure_url}))
+      } else {
+        alert("Gagal Upload Foto: " + (data.error?.message || "Unknown"))
+      }
+    } catch(e){
+      alert("Error Cloudinary: " + e.message)
+    }
     setUploading(prev => ({...prev, [index]: false}))
   }
 
@@ -129,17 +141,21 @@ export default function InputMobilPage() {
     if(!form.nama_mobil ||!form.merek ||!form.harga ||!form.foto_url_1) return alert("Lengkapi Nama, Merek, Harga & Foto Cover")
 
     let wa = form.no_wa_showroom
-    if(wa.startsWith("0")) wa = "62" + wa.slice(1)
+    if(wa && wa.startsWith("0")) wa = "62" + wa.slice(1) // FIX 3: cek wa ada isinya
 
     setLoading(true)
     const token = getCookie('token') || localStorage.getItem('token')
     if(!token) return setLoading(false)
 
     const payload = {
-  ...form, no_wa_showroom: wa,
-      tahun: Number(form.tahun) || 0, harga: Number(form.harga) || 0,
-      harga_kredit: Number(form.harga_kredit) || 0, angsuran: Number(form.angsuran) || 0,
-      kilometer: Number(form.kilometer) || 0, lama_angsuran: Number(form.lama_angsuran) || 0,
+     ...form,
+      no_wa_showroom: wa,
+      tahun: Number(form.tahun) || 0,
+      harga: Number(form.harga) || 0,
+      harga_kredit: Number(form.harga_kredit) || 0,
+      angsuran: Number(form.angsuran) || 0,
+      kilometer: Number(form.kilometer) || 0,
+      lama_angsuran: Number(form.lama_angsuran) || 0,
     }
 
     try {
@@ -148,9 +164,10 @@ export default function InputMobilPage() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload)
       })
-      if(!res.ok) alert("Gagal Upload")
+      const data = await res.json().catch(()=>({}))
+      if(!res.ok) alert(`Gagal Upload [${res.status}]: ` + (data.detail || ""))
       else { alert("Mobil berhasil diinput"); window.location.href = '/dashboard/mobil/list' }
-    } catch(err) { alert("Error: Failed to fetch") }
+    } catch(err) { alert("Error: Failed to fetch. Cek API") }
     finally { setLoading(false) }
   }
 
@@ -160,17 +177,17 @@ export default function InputMobilPage() {
     <div className={`${poppins.className} p-4 md:p-6 bg-[#0B0B0F] text-white min-h-screen`}>
       <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
         <h1 className="text-2xl font-bold text-yellow-400 flex items-center gap-2"><Car size={24}/> Input Mobil Baru</h1>
-        <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"><LogOut size={18}/> Logout</button>
+        <button type="button" onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"><LogOut size={18}/> Logout</button>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-        <TextInput name="nama_mobil" label="Nama Mobil *" value={form.nama_mobil} onChange={handleChange} />
-        <TextInput name="merek" label="Merek *" value={form.merek} onChange={handleChange} />
+        <TextInput name="nama_mobil" label="Nama Mobil" value={form.nama_mobil} onChange={handleChange} required />
+        <TextInput name="merek" label="Merek" value={form.merek} onChange={handleChange} required />
         <TextInput name="tipe" label="Tipe" value={form.tipe} onChange={handleChange} placeholder="RS, G, dll"/>
 
         <NumberInput name="tahun" label="Tahun" value={form.tahun} onChange={handleChange} />
         <NumberInput name="kilometer" label="Kilometer" value={form.kilometer} onChange={handleChange} />
-        <NumberInput name="harga" label="Harga Cash *" value={form.harga} onChange={handleChange} />
+        <NumberInput name="harga" label="Harga Cash" value={form.harga} onChange={handleChange} required />
         <NumberInput name="harga_kredit" label="Harga Kredit" value={form.harga_kredit} onChange={handleChange} />
         <NumberInput name="angsuran" label="Angsuran/bln" value={form.angsuran} onChange={handleChange} />
         <NumberInput name="lama_angsuran" label="Lama Angsuran Bulan" value={form.lama_angsuran} onChange={handleChange} />
@@ -179,7 +196,7 @@ export default function InputMobilPage() {
 
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Transmisi</label>
-          <select name="transmisi" value={form.transmisi} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg">
+          <select name="transmisi" value={form.transmisi} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg">
             <option>Manual</option><option>Automatic</option>
           </select>
         </div>
@@ -201,16 +218,16 @@ export default function InputMobilPage() {
           <div className="grid grid-cols-2 gap-3">
             {[1,2,3,4,5,6,7,8].map(i => (
               <div key={i} className="bg-[#1A1A1F] p-3 rounded-xl border-gray-700">
-                <label className="text-sm text-gray-400">Foto {i} {i===1 && '(Cover)'}</label>
+                <label className="text-sm text-gray-400">Foto {i} {i===1 && <span className="text-red-400">(Cover)</span>}</label>
                 {form[`foto_url_${i}`]? (
                   <div className="relative mt-2">
                     <img src={form[`foto_url_${i}`]} className="w-full h-24 object-cover rounded-lg"/>
                     <button type="button" onClick={() => removeFoto(i)} className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"><X size={12}/></button>
                   </div>
                 ) : (
-                  <label className="mt-2 flex-col items-center justify-center w-full h-20 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer hover:bg-gray-800">
+                  <label className="mt-2 flex flex-col items-center justify-center w-full h-20 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer hover:bg-gray-800">
                     {uploading[i]? <Loader2 className="animate-spin text-yellow-400"/> : <><span className="text-2xl">📸</span><span className="text-xs">Pilih Foto {i}</span></>}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadToCloudinary(e.target.files[0], i)}/>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && uploadToCloudinary(e.target.files[0], i)}/>
                   </label>
                 )}
               </div>
