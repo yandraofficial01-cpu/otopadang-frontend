@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Loader2, LogOut, Car, X } from "lucide-react"
 import { Poppins } from 'next/font/google'
 
@@ -15,6 +15,55 @@ const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// COMPONENT INPUT BARU BIAR GAK RE-RENDER PARENT
+function NumberInput({ label, name, value, onChange }) {
+  const [local, setLocal] = useState(value)
+  const ref = useRef()
+
+  useEffect(() => { setLocal(value) }, [value])
+
+  const handleLocalChange = (e) => {
+    const onlyNums = e.target.value.replace(/[^0-9]/g, '')
+    setLocal(onlyNums) // update local dulu biar lancar
+  }
+
+  const handleBlur = () => {
+    onChange({ target: { name, value: local } }) // baru update parent pas blur
+  }
+
+  return (
+    <div>
+      <label className="text-sm text-gray-400 mb-1 block">{label}</label>
+      <input
+        ref={ref}
+        name={name}
+        value={local}
+        onChange={handleLocalChange}
+        onBlur={handleBlur}
+        inputMode="numeric"
+        type="text"
+        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
+      />
+    </div>
+  )
+}
+
+function TextInput({ label, name, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label className="text-sm text-gray-400 mb-1 block">{label}</label>
+      <input
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        type="text"
+        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
+      />
+    </div>
+  )
 }
 
 export default function InputMobilPage() {
@@ -49,12 +98,6 @@ export default function InputMobilPage() {
   }, [])
 
   const handleChange = (e) => setForm({...form, [e.target.name]: e.target.value})
-
-  const handleNumberChange = (e) => {
-    const { name, value } = e.target
-    const onlyNums = value.replace(/[^0-9]/g, '')
-    setForm({...form, [name]: onlyNums})
-  }
 
   const handleLogout = () => {
     localStorage.clear()
@@ -113,19 +156,6 @@ export default function InputMobilPage() {
 
   if(pageLoading) return <div className={`${poppins.className} bg-[#0B0B0F] min-h-screen flex items-center justify-center gap-4 text-white`}><Loader2 className="w-10 h-10 animate-spin text-yellow-400"/><p>Memuat Halaman...</p></div>
 
-  const Input = ({label, isNumber,...props}) => (
-    <div>
-      <label className="text-sm text-gray-400 mb-1 block">{label}</label>
-      <input
-        {...props}
-        onChange={isNumber? handleNumberChange : handleChange}
-        inputMode={isNumber? "numeric" : "text"}
-        type="text"
-        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
-      />
-    </div>
-  )
-
   return (
     <div className={`${poppins.className} p-4 md:p-6 bg-[#0B0B0F] text-white min-h-screen`}>
       <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
@@ -134,17 +164,18 @@ export default function InputMobilPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-        <Input name="nama_mobil" label="Nama Mobil *" value={form.nama_mobil} required/>
-        <Input name="merek" label="Merek *" value={form.merek} required/>
-        <Input name="tipe" label="Tipe" value={form.tipe} placeholder="RS, G, dll"/>
-        <Input name="tahun" label="Tahun" value={form.tahun} isNumber placeholder="2020"/>
-        <Input name="kilometer" label="Kilometer" value={form.kilometer} isNumber/>
-        <Input name="harga" label="Harga Cash *" value={form.harga} isNumber required/>
-        <Input name="harga_kredit" label="Harga Kredit" value={form.harga_kredit} isNumber/>
-        <Input name="angsuran" label="Angsuran/bln" value={form.angsuran} isNumber/>
-        <Input name="lama_angsuran" label="Lama Angsuran Bulan" value={form.lama_angsuran} isNumber/>
-        <Input name="lokasi" label="Lokasi" value={form.lokasi}/>
-        <Input name="no_wa_showroom" label="No WA Showroom" value={form.no_wa_showroom} isNumber placeholder="6289..."/>
+        <TextInput name="nama_mobil" label="Nama Mobil *" value={form.nama_mobil} onChange={handleChange} />
+        <TextInput name="merek" label="Merek *" value={form.merek} onChange={handleChange} />
+        <TextInput name="tipe" label="Tipe" value={form.tipe} onChange={handleChange} placeholder="RS, G, dll"/>
+
+        <NumberInput name="tahun" label="Tahun" value={form.tahun} onChange={handleChange} />
+        <NumberInput name="kilometer" label="Kilometer" value={form.kilometer} onChange={handleChange} />
+        <NumberInput name="harga" label="Harga Cash *" value={form.harga} onChange={handleChange} />
+        <NumberInput name="harga_kredit" label="Harga Kredit" value={form.harga_kredit} onChange={handleChange} />
+        <NumberInput name="angsuran" label="Angsuran/bln" value={form.angsuran} onChange={handleChange} />
+        <NumberInput name="lama_angsuran" label="Lama Angsuran Bulan" value={form.lama_angsuran} onChange={handleChange} />
+        <TextInput name="lokasi" label="Lokasi" value={form.lokasi} onChange={handleChange} />
+        <NumberInput name="no_wa_showroom" label="No WA Showroom" value={form.no_wa_showroom} onChange={handleChange} />
 
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Transmisi</label>
@@ -153,7 +184,6 @@ export default function InputMobilPage() {
           </select>
         </div>
 
-        {/* INI YG DIGANTI: BANYAK PILIHAN BBM */}
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Bahan Bakar</label>
           <select name="bahan_bakar" value={form.bahan_bakar} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg">
