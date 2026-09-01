@@ -34,7 +34,7 @@ export default function AdminPage() {
     localStorage.setItem('admin_theme', newTheme)
   }
   const bg = theme === 'dark'? 'bg-[#0B0B0F]' : 'bg-[#F8F9FA]'
-  const card = theme === 'dark'? 'bg-[#1a1a20]/60 border border-gray-800' : 'bg-white/70 border-gray-200'
+  const card = theme === 'dark'? 'bg-[#1a1a20]/60 border-gray-800' : 'bg-white/70 border-gray-200'
   const text = theme === 'dark'? 'text-white' : 'text-gray-800'
   const textMuted = theme === 'dark'? 'text-gray-400' : 'text-gray-500'
 
@@ -85,7 +85,7 @@ export default function AdminPage() {
       }
 
       [mobil, showroom, rumah, blog] = await Promise.all([
-        fetchRetry('/admin/mobil', 'Mobil'),
+        fetchRetry('/admin/mobil/', 'Mobil'), // FIX 1: TAMBAH /
         fetchRetry('/admin/showroom', 'Showroom'),
         fetchRetry('/admin/rumah', 'Rumah'),
         fetchRetry('/admin/blog', 'Blog'),
@@ -120,20 +120,18 @@ export default function AdminPage() {
 
   const handleApproveMobil = async (id) => {
     if(!confirm('Approve mobil ini?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}`, {
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/approve`, { // FIX: TAMBAH /approve
       method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved' })
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
     })
     if(res.ok) fetchData(token); else alert(await res.text())
   }
 
   const handleSoldMobil = async (id) => {
     if(!confirm('Tandai mobil ini SOLD?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}`, {
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/sold`, { // FIX: PINDAH KE /sold
       method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'soldout' })
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
     })
     if(res.ok) fetchData(token); else alert(await res.text())
   }
@@ -196,14 +194,14 @@ export default function AdminPage() {
 
   const mobilPending = allMobil.filter(m => m.status === 'pending')
   const mobilApproved = allMobil.filter(m => m.status === 'approved')
-  const mobilSold = allMobil.filter(m => m.status === 'soldout')
+  const mobilSold = allMobil.filter(m => m.status_jual === 'sold') // FIX 3: filter status_jual
   const rumahAktif = allRumah.filter(r => r.status!== 'terjual')
 
   const StatusBadge = ({status}) => {
     const colors = {
       pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
       approved: 'bg-green-500/20 text-green-400 border-green-500/30',
-      soldout: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      sold: 'bg-blue-500/20 text-blue-400 border-blue-500/30', // FIX: sold
       terjual: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
       rejected: 'bg-red-500/20 text-red-400 border-red-500/30',
     }
@@ -256,7 +254,7 @@ export default function AdminPage() {
           <h2 className="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><Flame size={20}/> Review Mobil Baru ({mobilPending.length})</h2>
           {mobilPending.length === 0? <p className={textMuted}>Tidak ada mobil baru - Total di DB: {allMobil.length}</p> :
             mobilPending.slice(0, 10).map(m => (
-              <div key={m.id} className={`${card} p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center backdrop-blur-sm hover:bg-opacity-80 transition`}>
+              <div key={m.id} className={`${card} p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center backdrop-blur-sm hover:bg-opacity-80 transition`}>
                 <div className="flex gap-3 w-full">
                   <img src={m.foto_url_1 || m.foto_url || 'https://via.placeholder.com/100x100.png?text=No+Image'} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" alt={m.nama_mobil} />
                   <div className="flex-1">
@@ -275,10 +273,10 @@ export default function AdminPage() {
         </div>
 
         {/* MOBIL AKTIF */}
-        <div className="mb-8 p-6 border border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent backdrop-blur-sm">
+        <div className="mb-8 p-6 border-green-500/30 rounded-2xl bg-gradient-to-br from-green-900/10 to-transparent backdrop-blur-sm">
           <h2 className="text-xl font-bold mb-4 text-green-400 flex items-center gap-2"><Check size={20}/> Mobil Aktif ({mobilApproved.length})</h2>
           {mobilApproved.slice(0, 5).map(m => (
-            <div key={m.id} className={`${card} p-4 rounded-xl mb-3 flex-col md:flex-row justify-between items-start md:items-center backdrop-blur-sm`}>
+            <div key={m.id} className={`${card} p-4 rounded-xl mb-3 flex flex-col md:flex-row justify-between items-start md:items-center backdrop-blur-sm`}>
               <div className="flex gap-3">
                 <img src={m.foto_url_1 || m.foto_url || 'https://via.placeholder.com/80x80.png'} className="w-16 h-16 rounded-lg object-cover" />
                 <div>
@@ -287,7 +285,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2 mt-1"><StatusBadge status={m.status}/></div>
                 </div>
               </div>
-              <button onClick={() => handleSoldMobil(m.id)} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 mt-3 md:mt-0"><DollarSign size={16}/> Tandai SOLDOUT</button>
+              <button onClick={() => handleSoldMobil(m.id)} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 mt-3 md:mt-0"><DollarSign size={16}/> Tandai SOLD</button>
             </div>
           ))}
         </div>
@@ -295,9 +293,9 @@ export default function AdminPage() {
         {/* MENU */}
         <h2 className={`text-xl font-bold mb-4 ${playfair.className}`}>Menu Lainnya</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/admin/upload-rumah" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2 backdrop-blur-sm`}><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
-          <Link href="/admin/blog" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2 backdrop-blur-sm`}><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
-          <Link href="/admin/register-showroom" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2 backdrop-blur-sm`}><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
+          <Link href="/admin/upload-rumah" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2 backdrop-blur-sm`}><Home size={24}/> <h2 className="font-bold">Upload Rumah</h2></Link>
+          <Link href="/admin/blog" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex flex-col items-center gap-2 backdrop-blur-sm`}><FileText size={24}/> <h2 className="font-bold">Kelola Blog</h2></Link>
+          <Link href="/admin/register-showroom" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2 backdrop-blur-sm`}><Building2 size={24}/> <h2 className="font-bold">Daftar Showroom</h2></Link>
           <Link href="/admin/approve-showroom" className={`${card} p-4 rounded-xl hover:border-yellow-400 hover:bg-yellow-400/10 transition flex-col items-center gap-2 backdrop-blur-sm`}><ShieldCheck size={24}/> <h2 className="font-bold">Approve Showroom</h2></Link>
         </div>
       </div>
