@@ -44,7 +44,7 @@ function NumberInput({ label, name, value, onChange, required }) {
         inputMode="numeric"
         type="text"
         required={required}
-        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none" // FIX: tambah border
+        className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
       />
     </div>
   )
@@ -61,7 +61,7 @@ function TextInput({ label, name, value, onChange, placeholder, required }) {
         placeholder={placeholder}
         type="text"
         required={required}
-        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none" // FIX: tambah border
+        className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
       />
     </div>
   )
@@ -75,7 +75,7 @@ export default function InputMobilPage() {
     nama_mobil: "", merek: "", tipe: "", tahun: "", kilometer: "",
     transmisi: "Manual", bahan_bakar: "Bensin",
     harga: "", harga_kredit: "", angsuran: "", lama_angsuran: "",
-    lokasi: "", deskripsi: "", spesifikasi: "", no_wa_showroom: "", // FIX: tambah spesifikasi
+    lokasi: "", deskripsi: "", no_wa_showroom: "", // HAPUS spesifikasi
     foto_url_1: "", foto_url_2: "", foto_url_3: "", foto_url_4: "",
     foto_url_5: "", foto_url_6: "", foto_url_7: "", foto_url_8: "",
   })
@@ -146,7 +146,7 @@ export default function InputMobilPage() {
     const token = getCookie('token') || localStorage.getItem('token')
     if(!token) return setLoading(false)
 
-    const toIntOrNull = (v) => v? Number(v) : null // FIX: biar null bukan 0
+    const toIntOrNull = (v) => v? Number(v) : null
 
     const payload = {
     ...form,
@@ -197,33 +197,34 @@ export default function InputMobilPage() {
 
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Transmisi</label>
-          <select name="transmisi" value={form.transmisi} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg">
+          <select name="transmisi" value={form.transmisi} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg">
             <option>Manual</option><option>Automatic</option>
           </select>
         </div>
 
         <div>
           <label className="text-sm text-gray-400 mb-1 block">Bahan Bakar</label>
-          <select name="bahan_bakar" value={form.bahan_bakar} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg"> {/* FIX border */}
+          <select name="bahan_bakar" value={form.bahan_bakar} onChange={handleChange} className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg">
             {BAHAN_BAKAR_LIST.map(bbm => <option key={bbm} value={bbm}>{bbm}</option>)}
           </select>
         </div>
 
-        <div className="md:col-span-2">
-          <label className="text-sm text-gray-400 mb-1 block">Deskripsi</label>
-          <textarea name="deskripsi" value={form.deskripsi} onChange={handleChange} placeholder="Surat lengkap, like new" className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg h-24"></textarea>
-        </div>
-
-        <div className="md:col-span-2"> {/* FIX: TAMBAH INPUT SPESIFIKASI */}
-          <label className="text-sm text-gray-400 mb-1 block">Spesifikasi Detail</label>
-          <textarea name="spesifikasi" value={form.spesifikasi} onChange={handleChange} placeholder="Contoh: Pajak 2027, Ban baru, Bebas banjir" className="w-full p-3 bg-[#1A1A1F] border border-gray-700 rounded-lg h-24"></textarea>
+        <div className="md:col-span-2"> {/* GABUNGKAN DESKRIPSI + SPESIFIKASI */}
+          <label className="text-sm text-gray-400 mb-1 block">Deskripsi & Spesifikasi</label>
+          <textarea
+            name="deskripsi"
+            value={form.deskripsi}
+            onChange={handleChange}
+            placeholder="Contoh: Surat lengkap, Pajak 2027, Ban baru, Bebas banjir/tabrak"
+            className="w-full p-3 bg-[#1A1A1F] border-gray-700 rounded-lg h-32">
+          </textarea>
         </div>
 
         <div className="md:col-span-2">
           <h3 className="font-bold mb-3 text-yellow-400">Foto Mobil (Tap upload, auto Cloudinary)</h3>
           <div className="grid grid-cols-2 gap-3">
             {[1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className="bg-[#1A1A1F] p-3 rounded-xl border border-gray-700"> {/* FIX border */}
+              <div key={i} className="bg-[#1A1A1F] p-3 rounded-xl border-gray-700">
                 <label className="text-sm text-gray-400">Foto {i} {i===1 && <span className="text-red-400">(Cover)</span>}</label>
                 {form[`foto_url_${i}`]? (
                   <div className="relative mt-2">
