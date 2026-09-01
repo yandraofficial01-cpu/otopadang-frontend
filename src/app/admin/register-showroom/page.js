@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-const API_URL = 'https://otopadang-api.up.railway.app'
+const API_URL = 'https://otopadang-api.vercel.app' // <--- UDAH GANTI
 
 export default function RegisterShowroomPage() {
   const [form, setForm] = useState({
@@ -23,11 +23,9 @@ export default function RegisterShowroomPage() {
     setForm({...form, [e.target.name]: e.target.value })
   }
 
-  // FUNGSI PINTER: AUTO FILL PAS COPAS 1 BLOK
   const handlePaste = (e) => {
     const pastedText = e.clipboardData.getData('text');
     if (!pastedText.includes('\n')) return;
-
     e.preventDefault();
     const lines = pastedText.split('\n');
     const newForm = {...form };
@@ -46,7 +44,6 @@ export default function RegisterShowroomPage() {
       else if (key.includes('email')) newForm.email = value;
       else if (key.includes('password')) newForm.password = value;
     });
-
     setForm(newForm);
   }
 
@@ -54,28 +51,16 @@ export default function RegisterShowroomPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const registerData = {
-        nama_showroom: form.nama_showroom,
-        alamat: form.alamat,
-        wa_number: form.wa_number,
-        logo: form.logo,
-        deskripsi: form.deskripsi,
-        subdomain: form.subdomain,
-        email: form.email,
-        password: form.password
-      }
-
-      // UDAH DIGANTI KE /admin/register-showroom
       const resRegister = await fetch(`${API_URL}/admin/register-showroom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData)
+        body: JSON.stringify(form)
       })
 
       const resRegData = await resRegister.json();
       if (!resRegister.ok) throw new Error(resRegData.detail || 'Gagal register akun')
 
-      alert(`Registrasi Berhasil! Anak web lu: ${form.subdomain}.otpadang.com`)
+      alert(`Registrasi Berhasil! Anak web lu: ${form.subdomain}.otopadang.com`) // <--- UDAH FIX
       router.push('/login')
     } catch (err) {
       alert(`Error: ${err.message}`)
@@ -107,7 +92,6 @@ export default function RegisterShowroomPage() {
           {loading? 'Mendaftar...' : 'Daftar Sekarang'}
         </button>
       </form>
-      <p className="text-center mt-4">Sudah punya akun? <Link href="/login" className="text-blue-600">Login</Link></p>
     </div>
   )
 }
