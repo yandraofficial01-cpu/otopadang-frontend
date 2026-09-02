@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-// Fungsi decode JWT manual tanpa library
+// Fungsi decode JWT manual buat Edge Runtime
 function decodeJWT(token: string) {
   try {
-    const base64Url = token.split('.')[1] // ambil bagian payload
+    const base64Url = token.split('.')[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-      .split('')
-      .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-      .join('')
-    )
+    // PAKAI BUFFER, JANGAN ATOB
+    const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8')
     return JSON.parse(jsonPayload)
   } catch {
     return null
   }
 }
 
-export function middleware(request) {
+export function middleware(request: NextRequest) {
   const adminToken = request.cookies.get('admin_token')?.value
   const showroomToken = request.cookies.get('showroom_token')?.value
   const pathname = request.nextUrl.pathname
@@ -59,7 +56,7 @@ export function middleware(request) {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
   }
-  
+
   if (pathname === '/login-showroom' && showroomToken) {
     const decoded = decodeJWT(showroomToken)
     if (decoded?.role === 'showroom') {
