@@ -41,7 +41,8 @@ export default function ApproveShowroomPage() {
       alert("Berhasil di approve! User juga otomatis aktif");
       fetchShowrooms();
     } else {
-      alert("Gagal approve");
+      const err = await res.json();
+      alert(err.detail || "Gagal approve");
     }
   };
 
@@ -60,11 +61,11 @@ export default function ApproveShowroomPage() {
       alert(`Status diubah jadi ${newStatus}`);
       fetchShowrooms();
     } else {
-      alert("Gagal ubah status");
+      const err = await res.json();
+      alert(err.detail || "Gagal ubah status");
     }
   };
 
-  // FUNGSI UPGRADE/DOWNGRADE PAKET
   const updatePaket = async (id, paketBaru) => {
     const text = paketBaru === 'Premium' ? 'upgrade ke Premium' : 'turunkan ke Gratis';
     if(!confirm(`Yakin mau ${text} showroom ini?`)) return;
@@ -80,7 +81,8 @@ export default function ApproveShowroomPage() {
       alert(`Berhasil diubah ke ${paketBaru}!`);
       fetchShowrooms();
     } else {
-      alert("Gagal ubah paket. Cek endpoint backend");
+      const err = await res.json();
+      alert(err.detail || "Gagal ubah paket");
     }
   };
 
@@ -94,7 +96,8 @@ export default function ApproveShowroomPage() {
       alert("Berhasil dihapus!");
       fetchShowrooms();
     } else {
-      alert("Gagal hapus");
+      const err = await res.json();
+      alert(err.detail || "Gagal hapus");
     }
   };
 
@@ -155,18 +158,26 @@ export default function ApproveShowroomPage() {
               </div>
               {s.logo?
                 <img src={s.logo} className="w-16 h-16 rounded object-cover border-zinc-700"/> :
-                <div className="w-16 h-16 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs text-gray-500">No Img</div>
+                <div className="w-16 h-16 rounded bg-zinc-800 border-zinc-700 flex items-center justify-center text-xs text-gray-500">No Img</div>
               }
             </div>
 
             <div className="flex gap-2 mt-4 flex-wrap">
               {s.status === 'pending' && (
-                <button
-                  onClick={() => approve(s.id)}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg"
-                >
-                  Approve
-                </button>
+                <>
+                  <button
+                    onClick={() => approve(s.id)}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => toggleStatus(s.id, s.status)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
+                  >
+                    Aktifkan
+                  </button>
+                </>
               )}
 
               {s.status === 'approved' && (
@@ -175,15 +186,6 @@ export default function ApproveShowroomPage() {
                   className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded-lg"
                 >
                   Nonaktifkan
-                </button>
-              )}
-
-              {s.status === 'pending' && s.status !== 'approved' && (
-                <button
-                  onClick={() => toggleStatus(s.id, s.status)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
-                >
-                  Aktifkan
                 </button>
               )}
 
