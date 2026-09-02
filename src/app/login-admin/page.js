@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation' // GANTI INI
 import Link from 'next/link'
-import { Loader2, LogIn } from 'lucide-react' // <- js-cookie udah dihapus
+import { Loader2, LogIn }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -10,6 +11,7 @@ export default function LoginAdminPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const router = useRouter() // TAMBAH INI
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -19,6 +21,7 @@ export default function LoginAdminPage() {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // <-- INI WAJIB. Biar cookie dari BE ke save
         body: JSON.stringify({ email, password })
       })
       const data = await res.json()
@@ -29,10 +32,11 @@ export default function LoginAdminPage() {
         throw new Error(`Akun ini bukan admin. Role: ${data.user.role}`)
       }
         
-      document.cookie = `admin_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax; Secure`
+      // HAPUS INI. UDAH DI HANDLE BE
+      // document.cookie = `admin_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax; Secure`
       
       alert('Login Admin Berhasil!')
-      window.location.assign('/admin')
+      router.push('/admin') // lebih bagus dari window.location.assign
 
     } catch (error) {
       setError(error.message)
