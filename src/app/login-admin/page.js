@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Loader2, LogIn } from 'lucide-react'
+import Cookies from 'js-cookie' // npm i js-cookie
 
 const API_URL = 'https://otopadang-api.vercel.app'
 
@@ -9,63 +10,53 @@ export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('') // ganti alert pake state
 
   const handleLogoutDulu = () => {
     localStorage.clear()
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
-    document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
-    alert('Sudah logout. Silakan login lagi sebagai admin')
+    Cookies.remove('token')
+    Cookies.remove('admin_token') // baru
+    Cookies.remove('showroom_token') // baru
+    Cookies.remove('role')
     window.location.reload()
   }
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
     try {
-      const res = await fetch(`${API_URL}/auth/login`, { // FIX: DARI /admin/login JADI /auth/login
+      const res = await fetch(`${API_URL}/auth/login`, { 
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       })
       
       const data = await res.json()
-
-      if(!res.ok){
-        alert('Login gagal: ' + (data.detail || 'Email atau password salah'))
-        return
-      }
+      if(!res.ok) throw new Error(data.detail || 'Email atau password salah')
 
       const accessToken = data.access_token
       const user = data.user
 
-      if(!accessToken){
-        alert('Token kosong! Cek BE lu')
-        return
-      }
-
       if(user.role.toLowerCase() !== 'admin'){
-        alert(`Akses ditolak! Akun kamu role: ${user.role}. Harus 'admin'`)
-        return
+        throw new Error(`Akses ditolak! Akun kamu role: ${user.role}`)
       }
 
-      // SET SEMUA
-      localStorage.setItem('token', accessToken)
-      localStorage.setItem('role', user.role)
-      localStorage.setItem('email', user.email)
-      localStorage.setItem('showroom_id', user.showroom_id || '')
+      // 1. SET COOKIE PAKE JS-COOKIE + SECURE TRUE BUAT VERCEL
+      Cookies.set('admin_token', accessToken, { 
+        expires: 1, 
+        path: '/', 
+        SameSite: 'Lax',
+        secure: true // WAJIB di https
+      })
+      Cookies.set('admin_role', user.role, { expires: 1, path: '/', SameSite: 'Lax', secure: true })
 
-      document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Lax`
-      document.cookie = `role=${user.role}; path=/; max-age=86400; SameSite=Lax`
-
-      alert("Login berhasil!") 
-      window.location.href = '/admin'
+      // 2. JANGAN PAKE ALERT. LANGSUNG REDIRECT
+      window.location.assign('/admin') // assign lebih kuat dari href di mobile
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      alert('Server error: ' + error.message)
+      setError(error.message) // tampilin di bawah button
     } finally {
       setLoading(false)
     }
@@ -73,12 +64,14 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800 shadow-xl">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800 shadow-xl">
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin Otopadang</h1>
         
         <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-6 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
         
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
         <button disabled={loading} className="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50 flex items-center justify-center gap-2">
           {loading ? <Loader2 className="animate-spin" size={20}/> : <LogIn size={20}/>}
           {loading ? 'Loading...' : 'Masuk sebagai Admin'}
