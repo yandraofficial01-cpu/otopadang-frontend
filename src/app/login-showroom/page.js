@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Cookies from 'js-cookie' // npm i js-cookie
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -9,11 +10,13 @@ export default function LoginShowroomPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('') // ganti alert pake state
   const router = useRouter()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -22,31 +25,32 @@ export default function LoginShowroomPage() {
       })
       const data = await res.json()
 
-      if(res.ok){
-        const user = data.user
+      if(!res.ok) throw new Error(data.detail || 'Login gagal')
 
-        localStorage.setItem('token', data.access_token)
-        localStorage.setItem('role', user.role)
-        localStorage.setItem('showroom_id', user.showroom_id)
-        localStorage.setItem('email', user.email)
+      const accessToken = data.access_token
+      const user = data.user
 
-        document.cookie = `token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
-
-        if(user.role !== 'showroom'){
-          alert('Akun ini bukan showroom')
-          localStorage.clear()
-          document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-          setLoading(false)
-          return
-        }
-        
-        alert('Login berhasil!')
-        router.push('/dashboard/mobil/input')
-      } else {
-        alert(data.detail || 'Login gagal')
+      if(user.role.toLowerCase() !== 'showroom'){
+        throw new Error(`Akun ini bukan showroom. Role: ${user.role}`)
       }
-    } catch (error) {
-      alert('Server error: ' + error.message)
+        
+      // 1. HAPUS LOCALSTORAGE. GAK DIPAKE LAGI
+      localStorage.clear() 
+
+      // 2. SET COOKIE KHUSUS SHOWROOM
+      Cookies.set('showroom_token', accessToken, { 
+        expires: 1, 
+        path: '/', 
+        SameSite: 'Lax',
+        secure: true // wajib di vercel https
+      })
+      Cookies.set('showroom_id', user.showroom_id, { expires: 1, path: '/', SameSite: 'Lax', secure: true })
+
+      // 3. HAPUS ALERT. LANGSUNG PUSH
+      router.push('/dashboard/mobil/input')
+
+    } catch (error: any) {
+      setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -70,10 +74,12 @@ export default function LoginShowroomPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-400 outline-none"
           required
         />
         
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
         <button 
           type="submit"
           disabled={loading} 
