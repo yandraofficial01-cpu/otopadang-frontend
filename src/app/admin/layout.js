@@ -7,8 +7,8 @@ export const metadata = {
 
 export default function AdminLayout({ children }) {
   return (
-    <div>
-      <AutoLogout />
+    <div className="bg-[#0B0B0F] min-h-screen">
+      <AutoLogout /> {/* 1 jam baru logout */}
       {children}
     </div>
   );
