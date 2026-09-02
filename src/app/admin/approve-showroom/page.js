@@ -4,11 +4,18 @@ import { useEffect, useState } from "react";
 export default function ApproveShowroomPage() {
   const [showrooms, setShowrooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(""); // 1. Token di state biar aman SSR
 
   const API = "https://otopadang-api.vercel.app";
-  const token = localStorage.getItem("token"); 
+
+  // 2. Ambil token cuma pas di browser
+  useEffect(() => {
+    const t = localStorage.getItem("token");
+    if(t) setToken(t);
+  }, []);
 
   const fetchShowrooms = async () => {
+    if(!token) return; // jangan fetch kalau belum login
     setLoading(true);
     try {
       const res = await fetch(`${API}/admin/showroom/`, {
@@ -19,7 +26,7 @@ export default function ApproveShowroomPage() {
       setShowrooms(data);
     } catch (e) {
       console.log(e);
-      alert("Gagal ambil data showroom. Cek token/CORS");
+      alert("Gagal ambil data showroom. Cek token atau login ulang");
     }
     setLoading(false);
   };
@@ -39,7 +46,7 @@ export default function ApproveShowroomPage() {
   };
 
   const hapus = async (id, nama) => {
-    if(!confirm(`Yakin mau hapus showroom ${nama}?`)) return;
+    if(!confirm(`Yakin mau hapus showroom ${nama}? Data user juga ikut kehapus`)) return;
     const res = await fetch(`${API}/admin/showroom/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
@@ -52,11 +59,12 @@ export default function ApproveShowroomPage() {
     }
   };
 
+  // 3. Fetch jalan pas token udah keisi
   useEffect(() => { 
-    fetchShowrooms() 
-  }, []);
+    if(token) fetchShowrooms();
+  }, [token]);
 
-  // INI KUNCINYA: FILTER CUMA YANG PENDING
+  // 4. Filter cuma yg pending
   const pendingList = showrooms.filter(s => s.status === 'pending');
 
   return (
@@ -64,9 +72,10 @@ export default function ApproveShowroomPage() {
       <h1 className="text-2xl font-bold text-yellow-400 mb-2">Approve Showroom</h1>
       <p className="text-gray-400 mb-6">List showroom yg nunggu di approve akan muncul disini</p>
 
-      {loading && <p className="text-gray-400">Loading...</p>}
+      {!token && <p className="text-red-400">Silakan login admin dulu</p>}
+      {loading && token && <p className="text-gray-400">Loading...</p>}
 
-      {!loading && pendingList.length === 0 && (
+      {!loading && pendingList.length === 0 && token && (
         <p className="text-gray-400">Belum ada showroom pending</p>
       )}
 
@@ -90,7 +99,7 @@ export default function ApproveShowroomPage() {
                   </span>
                 </div>
               </div>
-              {s.logo && <img src={s.logo} className="w-16 h-16 rounded object-cover border-zinc-700"/>}
+              {s.logo && <img src={s.logo} className="w-16 h-16 rounded object-cover border border-zinc-700"/>}
             </div>
 
             <div className="flex gap-2 mt-4">
