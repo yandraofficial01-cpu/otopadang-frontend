@@ -6,7 +6,6 @@ function decodeJWT(token: string) {
   try {
     const base64Url = token.split('.')[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    // PAKAI BUFFER, JANGAN ATOB
     const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8')
     return JSON.parse(jsonPayload)
   } catch {
@@ -19,49 +18,50 @@ export function middleware(request: NextRequest) {
   const showroomToken = request.cookies.get('showroom_token')?.value
   const pathname = request.nextUrl.pathname
 
-  // 1. PROTEKSI HALAMAN /admin
+  const adminData = adminToken? decodeJWT(adminToken) : null
+  const showroomData = showroomToken? decodeJWT(showroomToken) : null
+
+  // RULE 1: KALAU MASUK /admin TAPI BAWA TOKEN SHOWROOM -> HAPUS & TENDANG
+  if (pathname.startsWith('/admin') && showroomToken) {
+    const res = NextResponse.redirect(new URL('/login-admin', request.url))
+    res.cookies.delete('showroom_token')
+    res.cookies.delete('showroom_id')
+    return res
+  }
+
+  // RULE 2: KALAU MASUK /dashboard TAPI BAWA TOKEN ADMIN -> HAPUS & TENDANG
+  if (pathname.startsWith('/dashboard') && adminToken) {
+    const res = NextResponse.redirect(new URL('/login-showroom', request.url))
+    res.cookies.delete('admin_token')
+    return res
+  }
+
+  // RULE 3: PROTEKSI HALAMAN /admin
   if (pathname.startsWith('/admin')) {
-    if (!adminToken) {
-      return NextResponse.redirect(new URL('/login-admin', request.url))
-    }
-
-    const decoded = decodeJWT(adminToken)
-    if (!decoded || decoded.role!== 'admin') {
-      // kalau token invalid atau rolenya bukan admin
+    if (!adminToken || adminData?.role!== 'admin') {
       const response = NextResponse.redirect(new URL('/login-admin', request.url))
-      response.cookies.delete('admin_token') // hapus token rusak
+      response.cookies.delete('admin_token')
       return response
     }
   }
 
-  // 2. PROTEKSI HALAMAN /dashboard
+  // RULE 4: PROTEKSI HALAMAN /dashboard
   if (pathname.startsWith('/dashboard')) {
-    if (!showroomToken) {
-      return NextResponse.redirect(new URL('/login-showroom', request.url))
-    }
-
-    const decoded = decodeJWT(showroomToken)
-    if (!decoded || decoded.role!== 'showroom') {
-      // kalau token invalid atau rolenya bukan showroom
+    if (!showroomToken || showroomData?.role!== 'showroom') {
       const response = NextResponse.redirect(new URL('/login-showroom', request.url))
-      response.cookies.delete('showroom_token') // hapus token rusak
+      response.cookies.delete('showroom_token')
+      response.cookies.delete('showroom_id')
       return response
     }
   }
 
-  // 3. KALAU UDAH LOGIN JANGAN KE HALAMAN LOGIN LAGI
-  if (pathname === '/login-admin' && adminToken) {
-    const decoded = decodeJWT(adminToken)
-    if (decoded?.role === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url))
-    }
+  // RULE 5: KALAU UDAH LOGIN JANGAN KE HALAMAN LOGIN LAGI
+  if (pathname === '/login-admin' && adminData?.role === 'admin') {
+    return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  if (pathname === '/login-showroom' && showroomToken) {
-    const decoded = decodeJWT(showroomToken)
-    if (decoded?.role === 'showroom') {
-      return NextResponse.redirect(new URL('/dashboard/mobil/input', request.url))
-    }
+  if (pathname === '/login-showroom' && showroomData?.role === 'showroom') {
+    return NextResponse.redirect(new URL('/dashboard/mobil/input', request.url))
   }
 
   return NextResponse.next()
