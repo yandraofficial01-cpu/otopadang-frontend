@@ -38,7 +38,7 @@ export default function ApproveShowroomPage() {
       headers: { Authorization: `Bearer ${token}` }
     });
     if(res.ok){
-      alert("Berhasil di approve!");
+      alert("Berhasil di approve! User juga otomatis aktif");
       fetchShowrooms();
     } else {
       alert("Gagal approve");
@@ -64,22 +64,23 @@ export default function ApproveShowroomPage() {
     }
   };
 
-  // 1. FUNGSI BARU: UPGRADE KE PREMIUM
-  const upgradePaket = async (id) => {
-    if(!confirm("Yakin mau upgrade showroom ini ke Premium?")) return;
+  // FUNGSI UPGRADE/DOWNGRADE PAKET
+  const updatePaket = async (id, paketBaru) => {
+    const text = paketBaru === 'Premium' ? 'upgrade ke Premium' : 'turunkan ke Gratis';
+    if(!confirm(`Yakin mau ${text} showroom ini?`)) return;
     const res = await fetch(`${API}/admin/showroom/${id}/paket`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ paket: "Premium" })
+      body: JSON.stringify({ paket: paketBaru })
     });
     if(res.ok){
-      alert("Berhasil upgrade ke Premium!");
+      alert(`Berhasil diubah ke ${paketBaru}!`);
       fetchShowrooms();
     } else {
-      alert("Gagal upgrade. Cek endpoint backend");
+      alert("Gagal ubah paket. Cek endpoint backend");
     }
   };
 
@@ -134,7 +135,7 @@ export default function ApproveShowroomPage() {
 
       <div className="grid gap-4">
         {list.map(s => (
-          <div key={s.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div key={s.id} className="bg-zinc-900 border-zinc-800 rounded-xl p-4">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-white font-bold text-lg">{s.nama_showroom}</h3>
@@ -153,7 +154,7 @@ export default function ApproveShowroomPage() {
                 </div>
               </div>
               {s.logo?
-                <img src={s.logo} className="w-16 h-16 rounded object-cover border border-zinc-700"/> :
+                <img src={s.logo} className="w-16 h-16 rounded object-cover border-zinc-700"/> :
                 <div className="w-16 h-16 rounded bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs text-gray-500">No Img</div>
               }
             </div>
@@ -177,13 +178,30 @@ export default function ApproveShowroomPage() {
                 </button>
               )}
 
-              {/* 2. TOMBOL BARU: MUNCUL KALAU MASIH GRATIS */}
+              {s.status === 'pending' && s.status !== 'approved' && (
+                <button
+                  onClick={() => toggleStatus(s.id, s.status)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
+                >
+                  Aktifkan
+                </button>
+              )}
+
+              {/* TOMBOL PAKET */}
               {s.paket === 'Gratis' && s.status === 'approved' && (
                 <button
-                  onClick={() => upgradePaket(s.id)}
+                  onClick={() => updatePaket(s.id, 'Premium')}
                   className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg"
                 >
                   Upgrade Premium
+                </button>
+              )}
+              {s.paket === 'Premium' && (
+                <button
+                  onClick={() => updatePaket(s.id, 'Gratis')}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-lg"
+                >
+                  Turunkan ke Gratis
                 </button>
               )}
 
