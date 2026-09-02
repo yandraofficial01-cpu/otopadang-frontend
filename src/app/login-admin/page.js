@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Loader2, LogIn } from 'lucide-react'
-import Cookies from 'js-cookie' // npm i js-cookie
+import Cookies from 'js-cookie'
 
 const API_URL = 'https://otopadang-api.vercel.app'
 
@@ -10,13 +10,13 @@ export default function LoginAdminPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('') // ganti alert pake state
+  const [error, setError] = useState('')
 
   const handleLogoutDulu = () => {
     localStorage.clear()
     Cookies.remove('token')
-    Cookies.remove('admin_token') // baru
-    Cookies.remove('showroom_token') // baru
+    Cookies.remove('admin_token')
+    Cookies.remove('showroom_token')
     Cookies.remove('role')
     window.location.reload()
   }
@@ -42,21 +42,18 @@ export default function LoginAdminPage() {
         throw new Error(`Akses ditolak! Akun kamu role: ${user.role}`)
       }
 
-      // 1. SET COOKIE PAKE JS-COOKIE + SECURE TRUE BUAT VERCEL
       Cookies.set('admin_token', accessToken, { 
         expires: 1, 
         path: '/', 
         SameSite: 'Lax',
-        secure: true // WAJIB di https
+        secure: true
       })
-      Cookies.set('admin_role', user.role, { expires: 1, path: '/', SameSite: 'Lax', secure: true })
 
-      // 2. JANGAN PAKE ALERT. LANGSUNG REDIRECT
-      window.location.assign('/admin') // assign lebih kuat dari href di mobile
+      window.location.assign('/admin')
       
-    } catch (error: any) {
+    } catch (error) { // <-- UDAH DIHAPUS :any nya
       console.error(error)
-      setError(error.message) // tampilin di bawah button
+      setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -64,7 +61,7 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800 shadow-xl">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800 shadow-xl">
         <h1 className="text-3xl font-bold text-yellow-400 mb-6 text-center">Login Admin Otopadang</h1>
         
         <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
@@ -80,10 +77,6 @@ export default function LoginAdminPage() {
         <button type="button" onClick={handleLogoutDulu} className="w-full mt-3 bg-gray-800 text-gray-400 text-sm py-2 rounded-lg hover:bg-gray-700">
           Force Logout Dulu
         </button>
-        
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Bukan admin? <Link href="/login-showroom" className="text-yellow-400 hover:underline">Login Showroom</Link>
-        </p>
       </form>
     </div>
   )
