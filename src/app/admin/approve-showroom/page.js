@@ -46,19 +46,19 @@ export default function ApproveShowroomPage() {
     }
   };
 
-  const toggleStatus = async (id, currentStatus) => {
+  // FIX: INI HARUS HIT USER_ID BUKAN SHOWROOM_ID
+  const toggleStatusUser = async (userId, currentStatus) => {
+    if(!userId) return alert("Data user tidak ditemukan");
     const newStatus = currentStatus === 'approved'? 'pending' : 'approved';
-    if(!confirm(`Yakin mau ubah status jadi ${newStatus}?`)) return;
-    const res = await fetch(`${API}/admin/showroom/${id}/status`, {
+    if(!confirm(`Yakin mau ubah status user jadi ${newStatus}?`)) return;
+
+    const res = await fetch(`${API}/admin/user/${userId}/status?new_status=${newStatus}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ status: newStatus })
+      headers: { Authorization: `Bearer ${token}` }
     });
+
     if(res.ok){
-      alert(`Status diubah jadi ${newStatus}`);
+      alert(`Status user diubah jadi ${newStatus}`);
       fetchShowrooms();
     } else {
       const err = await res.json();
@@ -67,7 +67,7 @@ export default function ApproveShowroomPage() {
   };
 
   const updatePaket = async (id, paketBaru) => {
-    const text = paketBaru === 'Premium' ? 'upgrade ke Premium' : 'turunkan ke Gratis';
+    const text = paketBaru === 'Premium'? 'upgrade ke Premium' : 'turunkan ke Gratis';
     if(!confirm(`Yakin mau ${text} showroom ini?`)) return;
     const res = await fetch(`${API}/admin/showroom/${id}/paket`, {
       method: "PUT",
@@ -106,7 +106,7 @@ export default function ApproveShowroomPage() {
   }, [token]);
 
   const list = tab === 'pending'
-   ? showrooms.filter(s => s.status === 'pending')
+  ? showrooms.filter(s => s.status === 'pending')
     : showrooms;
 
   const pendingCount = showrooms.filter(s => s.status === 'pending').length;
@@ -143,13 +143,17 @@ export default function ApproveShowroomPage() {
               <div>
                 <h3 className="text-white font-bold text-lg">{s.nama_showroom}</h3>
                 <p className="text-gray-400 text-sm">ID: {s.id}</p>
+                <p className="text-gray-400 text-sm">Email User: {s.user?.email || "-"}</p> {/* TAMBAH INI */}
                 <p className="text-gray-400 text-sm">URL: {s.subdomain}.otopadang.com</p>
                 <p className="text-gray-400 text-sm">WA: {s.wa_number}</p>
                 <p className="text-gray-400 text-sm">Alamat: {s.alamat || "-"}</p>
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 flex-wrap">
                   <span className={`text-xs px-2 py-1 rounded font-semibold ${s.status === 'approved'? 'bg-green-600' : 'bg-yellow-600'}`}>
-                    {s.status}
+                    Showroom: {s.status}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded font-semibold ${s.user?.status === 'approved'? 'bg-green-600' : 'bg-red-600'}`}> {/* TAMBAH INI */}
+                    User: {s.user?.status || 'kosong'}
                   </span>
                   <span className={`text-xs px-2 py-1 rounded font-semibold ${s.paket === 'Premium'? 'bg-purple-600' : 'bg-gray-600'}`}>
                     {s.paket}
@@ -164,33 +168,26 @@ export default function ApproveShowroomPage() {
 
             <div className="flex gap-2 mt-4 flex-wrap">
               {s.status === 'pending' && (
-                <>
-                  <button
-                    onClick={() => approve(s.id)}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => toggleStatus(s.id, s.status)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
-                  >
-                    Aktifkan
-                  </button>
-                </>
+                <button
+                  onClick={() => approve(s.id)}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg"
+                >
+                  Approve Showroom + User
+                </button>
               )}
 
-              {s.status === 'approved' && (
+              {/* TOMBOL BARU: AKTIF/NONAKTIF USER */}
+              {s.user && (
                 <button
-                  onClick={() => toggleStatus(s.id, s.status)}
-                  className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded-lg"
+                  onClick={() => toggleStatusUser(s.user.id, s.user.status)}
+                  className={`flex-1 font-bold py-2 rounded-lg ${s.user.status === 'approved'? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                 >
-                  Nonaktifkan
+                  {s.user.status === 'approved'? 'Nonaktifkan User' : 'Aktifkan User'}
                 </button>
               )}
 
               {/* TOMBOL PAKET */}
-              {s.paket === 'Gratis' && s.status === 'approved' && (
+              {s.status === 'approved' && s.paket === 'Gratis' && (
                 <button
                   onClick={() => updatePaket(s.id, 'Premium')}
                   className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg"
