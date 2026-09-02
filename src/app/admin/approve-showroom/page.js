@@ -9,7 +9,6 @@ export default function ApproveShowroomPage() {
 
   const API = "https://otopadang-api.vercel.app";
 
-  // Ambil token cuma pas di browser biar aman SSR
   useEffect(() => {
     const t = localStorage.getItem("token");
     if(t) setToken(t);
@@ -46,7 +45,6 @@ export default function ApproveShowroomPage() {
     }
   };
 
-  // Fungsi baru: buat nonaktifkan / aktifkan lagi
   const toggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'approved'? 'pending' : 'approved';
     if(!confirm(`Yakin mau ubah status jadi ${newStatus}?`)) return;
@@ -63,6 +61,25 @@ export default function ApproveShowroomPage() {
       fetchShowrooms();
     } else {
       alert("Gagal ubah status");
+    }
+  };
+
+  // 1. FUNGSI BARU: UPGRADE KE PREMIUM
+  const upgradePaket = async (id) => {
+    if(!confirm("Yakin mau upgrade showroom ini ke Premium?")) return;
+    const res = await fetch(`${API}/admin/showroom/${id}/paket`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ paket: "Premium" })
+    });
+    if(res.ok){
+      alert("Berhasil upgrade ke Premium!");
+      fetchShowrooms();
+    } else {
+      alert("Gagal upgrade. Cek endpoint backend");
     }
   };
 
@@ -84,7 +101,6 @@ export default function ApproveShowroomPage() {
     if(token) fetchShowrooms();
   }, [token]);
 
-  // Filter berdasarkan tab
   const list = tab === 'pending'
    ? showrooms.filter(s => s.status === 'pending')
     : showrooms;
@@ -95,7 +111,6 @@ export default function ApproveShowroomPage() {
     <div className="p-6 bg-[#0B0B0F] min-h-screen text-white">
       <h1 className="text-2xl font-bold text-yellow-400 mb-4">Kelola Showroom</h1>
 
-      {/* TAB NAVIGASI */}
       <div className="flex gap-2 mb-6 border-b border-zinc-800">
         <button
           onClick={() => setTab('pending')}
@@ -143,7 +158,7 @@ export default function ApproveShowroomPage() {
               }
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-4 flex-wrap">
               {s.status === 'pending' && (
                 <button
                   onClick={() => approve(s.id)}
@@ -159,6 +174,16 @@ export default function ApproveShowroomPage() {
                   className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded-lg"
                 >
                   Nonaktifkan
+                </button>
+              )}
+
+              {/* 2. TOMBOL BARU: MUNCUL KALAU MASIH GRATIS */}
+              {s.paket === 'Gratis' && s.status === 'approved' && (
+                <button
+                  onClick={() => upgradePaket(s.id)}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg"
+                >
+                  Upgrade Premium
                 </button>
               )}
 
