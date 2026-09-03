@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 export async function POST(request) {
   try {
     const body = await request.json()
-    console.log("Proxy login Body: ", body) 
+    console.log("Proxy login Body: ", body)
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
       method: 'POST',
@@ -12,24 +12,27 @@ export async function POST(request) {
     })
 
     const data = await res.json()
-    console.log("Proxy login response: ", data) 
+    console.log("Proxy login response: ", data)
 
     const response = NextResponse.json(data, { status: res.status })
 
-    // Set cookie dari server biar aman
-    if(res.ok) {
-      response.cookies.set('token', data.access_token, {
+    // Set cookie dari server biar aman - INI KUNCINYA
+    if(res.ok && data.access_token && data.user) {
+      const cookieName = data.user.role === 'admin' ? 'admin_token' : 'showroom_token'
+      
+      response.cookies.set(cookieName, data.access_token, {
         path: '/',
-        maxAge: 86400,
-        sameSite: 'lax',
-        httpOnly: true // <- PENTING BIAR AMAN
+        maxAge: 60 * 60 * 24 * 7, // 7 hari
+        sameSite: 'lax', // aman karena 1 domain
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production', // true di vercel
       })
     }
 
     return response
 
   } catch (error) {
-    console.error("Proxy Error:", error) 
+    console.error("Proxy Error:", error)
     return NextResponse.json({ detail: "Proxy error" }, { status: 500 })
   }
 }
