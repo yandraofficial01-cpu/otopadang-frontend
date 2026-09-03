@@ -20,7 +20,7 @@ export default function LoginShowroomPage() {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // WAJIB
+        credentials: 'include', // WAJIB BIAR COOKIE NYEBRANG
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
@@ -32,7 +32,8 @@ export default function LoginShowroomPage() {
         throw new Error(`Akun ini bukan showroom. Role: ${data.user.role}`);
       }
         
-      router.push('/showroom/dashboard');
+      // UDAH DIGANTI: Langsung ke halaman input mobil
+      router.push('/dashboard/mobil');
 
     } catch (error) {
       setError(error.message);
@@ -47,10 +48,11 @@ export default function LoginShowroomPage() {
         <h1 className="text-3xl font-bold text-white mb-6 text-center flex items-center justify-center gap-2">
           <Building/> Login Showroom
         </h1>
+        <p className="text-xs text-gray-500 mb-2 text-center">API: {API_URL}</p>
         {error && <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4">{error}</p>}
         <input type="email" placeholder="Email Showroom" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-gold outline-none" required />
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-gold outline-none" required />
-        <button type="submit" disabled={loading} className="w-full btn-gold flex items-center justify-center gap-2">
+        <button type="submit" disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition">
           {loading ? <Loader2 className="animate-spin"/> : 'Masuk Dashboard'}
         </button>
       </form>
