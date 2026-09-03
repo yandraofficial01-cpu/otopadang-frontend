@@ -17,8 +17,6 @@ export default function LoginAdminPage() {
     setLoading(true);
     setError('');
 
-    console.log("API_URL yg dipake:", API_URL); 
-
     if (!API_URL) {
       setError("Error: NEXT_PUBLIC_API_URL belum di set di Vercel");
       setLoading(false);
@@ -26,16 +24,14 @@ export default function LoginAdminPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/admin/auth/login`, { // <-- INI UDAH DITAMBAH /admin
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ email, password })
       });
 
-      console.log("Status Response:", res.status);
       const data = await res.json();
-      console.log("Data Response:", data);
 
       if(!res.ok) throw new Error(data.detail || 'Login gagal');
 
@@ -45,9 +41,8 @@ export default function LoginAdminPage() {
         
       router.push('/admin');
 
-    } catch (error) { // <-- UDAH DIHAPUS :any NYA
+    } catch (error) {
       setError(error.message);
-      console.error("Error Login:", error);
     } finally {
       setLoading(false);
     }
@@ -59,36 +54,11 @@ export default function LoginAdminPage() {
         <h1 className="text-3xl font-bold text-white mb-6 text-center flex items-center justify-center gap-2">
           <LogIn/> Login Admin Otopadang
         </h1>
-
-        <p className="text-xs text-gray-500 mb-2 text-center">API: {API_URL || 'KOSONG!'}</p>
-
-        {error && (
-          <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4 flex items-center gap-2">
-            <AlertCircle size={16}/> {error}
-          </p>
-        )}
-        
-        <input 
-          type="email" 
-          placeholder="Email Admin" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
-          required 
-        />
-        <button 
-          type="submit" 
-          disabled={loading} 
-          className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition"
-        >
+        <p className="text-xs text-gray-500 mb-2 text-center">API: {API_URL}</p>
+        {error && <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4 flex items-center gap-2"><AlertCircle size={16}/> {error}</p>}
+        <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
+        <button type="submit" disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition">
           {loading ? <Loader2 className="animate-spin"/> : 'Masuk Dashboard'}
         </button>
       </form>
