@@ -24,10 +24,11 @@ export default function LoginAdminPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/admin/auth/login`, { // <-- INI UDAH DITAMBAH /admin
+      // UBAH INI: /admin/auth/login -> /auth/login
+      const res = await fetch(`${API_URL}/auth/login`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        credentials: 'include', // INI WAJIB BIAR COOKIE NYEBRANG
         body: JSON.stringify({ email, password })
       });
 
@@ -35,6 +36,7 @@ export default function LoginAdminPage() {
 
       if(!res.ok) throw new Error(data.detail || 'Login gagal');
 
+      // TAMBAHIN CEK ROLE DI SINI
       if(!data.user || data.user.role.toLowerCase() !== 'admin'){
         throw new Error(`Akun ini bukan admin. Role: ${data.user?.role}`);
       }
@@ -57,7 +59,7 @@ export default function LoginAdminPage() {
         <p className="text-xs text-gray-500 mb-2 text-center">API: {API_URL}</p>
         {error && <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4 flex items-center gap-2"><AlertCircle size={16}/> {error}</p>}
         <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
         <button type="submit" disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition">
           {loading ? <Loader2 className="animate-spin"/> : 'Masuk Dashboard'}
         </button>
