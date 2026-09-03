@@ -17,7 +17,6 @@ export default function LoginAdminPage() {
     setLoading(true);
     setError('');
 
-    // DEBUG 1: CEK API_URL
     console.log("API_URL yg dipake:", API_URL); 
 
     if (!API_URL) {
@@ -30,26 +29,23 @@ export default function LoginAdminPage() {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // WAJIB BUAT KIRIM/TERIMA COOKIE
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       });
 
-      // DEBUG 2: CEK STATUS
       console.log("Status Response:", res.status);
-
       const data = await res.json();
-      console.log("Data Response:", data); // DEBUG 3
+      console.log("Data Response:", data);
 
       if(!res.ok) throw new Error(data.detail || 'Login gagal');
 
-      // CEK ROLE DARI RESPONSE
       if(!data.user || data.user.role.toLowerCase() !== 'admin'){
         throw new Error(`Akun ini bukan admin. Role: ${data.user?.role}`);
       }
         
       router.push('/admin');
 
-    } catch (error: any) {
+    } catch (error) { // <-- UDAH DIHAPUS :any NYA
       setError(error.message);
       console.error("Error Login:", error);
     } finally {
@@ -64,7 +60,6 @@ export default function LoginAdminPage() {
           <LogIn/> Login Admin Otopadang
         </h1>
 
-        {/* TAMPILIN API_URL BUAT DEBUG */}
         <p className="text-xs text-gray-500 mb-2 text-center">API: {API_URL || 'KOSONG!'}</p>
 
         {error && (
@@ -78,7 +73,7 @@ export default function LoginAdminPage() {
           placeholder="Email Admin" 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         <input 
@@ -86,7 +81,7 @@ export default function LoginAdminPage() {
           placeholder="Password" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         <button 
