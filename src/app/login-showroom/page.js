@@ -32,7 +32,7 @@ export default function LoginShowroomPage() {
         throw new Error(`Akun ini bukan showroom. Role: ${data.user.role}`);
       }
         
-      // UDAH DIGANTI: Langsung ke halaman input mobil
+      // Langsung ke halaman input mobil
       router.push('/dashboard/mobil');
 
     } catch (error) {
@@ -53,7 +53,7 @@ export default function LoginShowroomPage() {
         <input type="email" placeholder="Email Showroom" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-gold outline-none" required />
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-gold outline-none" required />
         <button type="submit" disabled={loading} className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition">
-          {loading ? <Loader2 className="animate-spin"/> : 'Masuk Dashboard'}
+          {loading ? <Loader2 className="animate-spin"/> : 'Masuk & Input Mobil'}
         </button>
       </form>
     </div>
