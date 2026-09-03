@@ -61,7 +61,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname === '/login-showroom' && showroomData?.role === 'showroom') {
-    return NextResponse.redirect(new URL('/dashboard/mobil/input', request.url))
+    return NextResponse.redirect(new URL('/dashboard', request.url)) // <-- GUE SAMAIN JADI /dashboard AJA
   }
 
   return NextResponse.next()
