@@ -8,18 +8,32 @@ export default function AutoLogout() {
   const timer = useRef(null)
   const [timeLeft, setTimeLeft] = useState(60 * 60) // 1 jam
 
-  const LOGOUT_TIME_MS = 60 * 60 * 1000 // 1. UBAH JADI 1 JAM ✅
+  const LOGOUT_TIME_MS = 60 * 60 * 1000 // 1 JAM
   const LOGOUT_TIME_SEC = 60 * 60
+
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  };
 
   const logout = () => {
     localStorage.clear()
-    document.cookie = "token=; path=/; max-age=0"
+    // HAPUS SEMUA COOKIE TOKEN
+    document.cookie = "admin_token=; path=/; max-age=0; SameSite=None; Secure"
+    document.cookie = "showroom_token=; path=/; max-age=0; SameSite=None; Secure"
     alert('Sesi habis 1 jam. Silakan login ulang')
-    router.push('/admin/login') // samain sama folder lu
+
+    // CEK KITA LAGI DI ADMIN ATAU SHOWROOM
+    if(pathname.startsWith('/admin')) {
+      router.push('/admin/login')
+    } else {
+      router.push('/login/showroom') // ganti sesuai path login showroom lu
+    }
   }
 
   const resetTimer = () => {
-    setTimeLeft(LOGOUT_TIME_SEC) // reset hitungan mundur
+    setTimeLeft(LOGOUT_TIME_SEC)
     if(timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(logout, LOGOUT_TIME_MS)
   }
@@ -33,21 +47,18 @@ export default function AutoLogout() {
   }, [])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if(!token) return
+    // CEK COOKIE BUKAN LOCALSTORAGE
+    const adminToken = getCookie('admin_token')
+    const showroomToken = getCookie('showroom_token')
+    if(!adminToken &&!showroomToken) return
 
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
     events.forEach(event => window.addEventListener(event, resetTimer))
-
-    // 2. HAPUS BAGIAN INI. Biar gak logout pas buka WA
-    // const handleVisibility = () => {... }
-    // document.addEventListener('visibilitychange', handleVisibility)
 
     resetTimer()
 
     return () => {
       events.forEach(event => window.removeEventListener(event, resetTimer))
-      // document.removeEventListener('visibilitychange', handleVisibility)
       clearTimeout(timer.current)
     }
   }, [pathname])
