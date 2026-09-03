@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogIn } from 'lucide-react'; // <-- TITIK KOMA JANGAN LUPA
+import { Loader2, LogIn, AlertCircle } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,6 +16,16 @@ export default function LoginAdminPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // DEBUG 1: CEK API_URL
+    console.log("API_URL yg dipake:", API_URL); 
+
+    if (!API_URL) {
+      setError("Error: NEXT_PUBLIC_API_URL belum di set di Vercel");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -23,19 +33,25 @@ export default function LoginAdminPage() {
         credentials: 'include', // WAJIB BUAT KIRIM/TERIMA COOKIE
         body: JSON.stringify({ email, password })
       });
+
+      // DEBUG 2: CEK STATUS
+      console.log("Status Response:", res.status);
+
       const data = await res.json();
+      console.log("Data Response:", data); // DEBUG 3
 
       if(!res.ok) throw new Error(data.detail || 'Login gagal');
 
       // CEK ROLE DARI RESPONSE
-      if(data.user.role.toLowerCase() !== 'admin'){
-        throw new Error(`Akun ini bukan admin. Role: ${data.user.role}`);
+      if(!data.user || data.user.role.toLowerCase() !== 'admin'){
+        throw new Error(`Akun ini bukan admin. Role: ${data.user?.role}`);
       }
         
       router.push('/admin');
 
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
+      console.error("Error Login:", error);
     } finally {
       setLoading(false);
     }
@@ -43,14 +59,41 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
         <h1 className="text-3xl font-bold text-white mb-6 text-center flex items-center justify-center gap-2">
           <LogIn/> Login Admin Otopadang
         </h1>
-        {error && <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4">{error}</p>}
-        <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-gold outline-none" required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-gold outline-none" required />
-        <button type="submit" disabled={loading} className="w-full btn-gold flex items-center justify-center gap-2">
+
+        {/* TAMPILIN API_URL BUAT DEBUG */}
+        <p className="text-xs text-gray-500 mb-2 text-center">API: {API_URL || 'KOSONG!'}</p>
+
+        {error && (
+          <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4 flex items-center gap-2">
+            <AlertCircle size={16}/> {error}
+          </p>
+        )}
+        
+        <input 
+          type="email" 
+          placeholder="Email Admin" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          required 
+        />
+        <button 
+          type="submit" 
+          disabled={loading} 
+          className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-black font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition"
+        >
           {loading ? <Loader2 className="animate-spin"/> : 'Masuk Dashboard'}
         </button>
       </form>
