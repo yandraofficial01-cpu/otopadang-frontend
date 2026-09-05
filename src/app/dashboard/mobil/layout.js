@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-// import AutoLogout from "../../../component/autologout"; // KOMEN DULU
+import dynamic from 'next/dynamic'
+
+const AutoLogout = dynamic(() => import('../../../component/autologout'), { ssr: false })
 
 export default function MobilLayout({ children }) {
   const cookieStore = cookies()
@@ -17,7 +19,7 @@ export default function MobilLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#0B0B0F] text-[#E5E5E5]">
-      {/* <AutoLogout /> */}  {/* KOMEN DULU */}
+      <AutoLogout />
       {children}
     </div>
   );
