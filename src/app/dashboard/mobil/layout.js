@@ -1,10 +1,8 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import Autologoutwrapper from '../../../component/autologoutwrapper'
 
-const AutoLogout = dynamic(() => import('../../../component/autologout'), { ssr: false })
-
-export default function MobilLayout({ children }) {
+export default function Mobillayout({ children }) {
   const cookieStore = cookies()
   const adminToken = cookieStore.get('admin_token')
   const showroomToken = cookieStore.get('showroom_token')
@@ -19,7 +17,7 @@ export default function MobilLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#0B0B0F] text-[#E5E5E5]">
-      <AutoLogout />
+      <Autologoutwrapper />
       {children}
     </div>
   );
