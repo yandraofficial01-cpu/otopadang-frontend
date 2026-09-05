@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import Autologoutwrapper from '../../../component/autologoutwrapper'
+import Autologoutwrapper from '../../component/autologoutwrapper' // UDAH DI BENERIN
 
 export default function Mobillayout({ children }) {
   const cookieStore = cookies()
