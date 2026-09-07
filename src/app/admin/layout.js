@@ -1,6 +1,4 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import Autologoutwrapper from '../component/autologoutwrapper'
+import Autologoutwrapper from '../../component/autologoutwrapper'
 
 export const metadata = {
   title: "Admin Panel - Otopadang",
@@ -8,12 +6,8 @@ export const metadata = {
 };
 
 export default function AdminLayout({ children }) {
-  const cookieStore = cookies()
-  const adminToken = cookieStore.get('admin_token')
-
-  if (!adminToken) {
-    redirect('/login-admin')
-  }
+  // HAPUS SEMUA CEK COOKIE DI SINI
+  // Biarkan page.js yang handle redirect via /api/auth/me
 
   return (
     <div className="bg-[#0B0B0F] min-h-screen text-[#E5E5E5]">
