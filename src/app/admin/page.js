@@ -34,7 +34,7 @@ export default function AdminPage() {
   }
 
   const bg = theme === 'dark' ? 'bg-[#0B0B0F]' : 'bg-[#F8F9FA]'
-  const card = theme === 'dark' ? 'bg-[#1a1a20]/60 border-gray-800' : 'bg-white/70 border-gray-200'
+  const card = theme === 'dark' ? 'bg-[#1a1a20]/60 border border-gray-800' : 'bg-white/70 border-gray-200'
   const text = theme === 'dark' ? 'text-white' : 'text-gray-800'
   const textMuted = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
@@ -61,10 +61,10 @@ export default function AdminPage() {
     setLoading(true); setError('')
     try {
       const [mobil, showroom, rumah, blog] = await Promise.all([
-        fetchWithTimeout('/api/admin/mobil/').catch(() => []),
-        fetchWithTimeout('/api/admin/showroom/').catch(() => []),
-        fetchWithTimeout('/api/admin/rumah/').catch(() => []),
-        fetchWithTimeout('/api/admin/blog/').catch(() => []),
+        fetchWithTimeout('/api/admin/mobil/'),
+        fetchWithTimeout('/api/admin/showroom/'),
+        fetchWithTimeout('/api/admin/rumah/'),
+        fetchWithTimeout('/api/admin/blog/'),
       ])
       setAllMobil(Array.isArray(mobil) ? mobil : [])
       setShowrooms(Array.isArray(showroom) ? showroom : [])
@@ -101,7 +101,7 @@ export default function AdminPage() {
     const res = await fetch(`/api/admin/rumah/${id}`, { 
       method: 'PUT', 
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }, // FIX PENTING
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'terjual' }) 
     })
     if(res.ok) fetchData(); else alert(await res.text())
@@ -172,6 +172,21 @@ export default function AdminPage() {
         <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Car/> Mobil</h2>
           <p className={textMuted}>Pending: {mobilPending.length} | Approved: {mobilApproved.length} | Sold: {mobilSold.length}</p>
+          <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {allMobil.map(m => (
+              <div key={m.id} className="flex justify-between items-center p-2 border-b border-gray-700/50">
+                <div>
+                  <p className="font-semibold">{m.merk} {m.model}</p>
+                  <StatusBadge status={m.status}/>
+                </div>
+                <div className="flex gap-2">
+                  {m.status === 'pending' && <button onClick={() => handleApproveMobil(m.id)} className="bg-green-600 px-3 py-1 rounded-lg text-xs">Approve</button>}
+                  {m.status === 'approved' && <button onClick={() => handleSoldMobil(m.id)} className="bg-blue-600 px-3 py-1 rounded-lg text-xs">Sold</button>}
+                  <button onClick={() => handleDeleteMobil(m.id)} className="bg-red-600 px-3 py-1 rounded-lg text-xs"><Trash2 size={14}/></button>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* SECTION RUMAH */}
@@ -189,6 +204,41 @@ export default function AdminPage() {
                   <button onClick={() => handleTerjualRumah(r.id)} className="bg-green-600 px-3 py-1 rounded-lg text-xs">Jual</button>
                   <button onClick={() => handleDeleteRumah(r.id)} className="bg-red-600 px-3 py-1 rounded-lg text-xs"><Trash2 size={14}/></button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION SHOWROOM - BARU DITAMBAH */}
+        <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Building2/> Showroom</h2>
+          <p className={textMuted}>Total: {showrooms.length} | Pending: {showrooms.filter(s => s.status === 'pending').length}</p>
+          <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {showrooms.map(s => (
+              <div key={s.id} className="flex justify-between items-center p-2 border-b border-gray-700/50">
+                <div>
+                  <p className="font-semibold">{s.nama_showroom}</p>
+                  <StatusBadge status={s.status}/>
+                  {s.is_premium && <span className="ml-2 text-yellow-400"><Crown size={14} className="inline"/></span>}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleApproveShowroom(s.id)} className="bg-green-600 px-3 py-1 rounded-lg text-xs">Approve</button>
+                  <button onClick={() => handleSetPremium(s.id)} className="bg-yellow-600 px-3 py-1 rounded-lg text-xs"><Crown size={14}/></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION BLOG - BARU DITAMBAH */}
+        <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><FileText/> Blog</h2>
+          <p className={textMuted}>Total Artikel: {allBlog.length}</p>
+          <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {allBlog.map(b => (
+              <div key={b.id} className="p-2 border-b border-gray-700/50">
+                <p className="font-semibold">{b.judul}</p>
+                <StatusBadge status={b.status}/>
               </div>
             ))}
           </div>
