@@ -9,7 +9,7 @@ import {
   Loader2, RefreshCw, AlertTriangle, Sun, Moon, Eye
 } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL // KUNCI
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'] })
@@ -44,7 +44,7 @@ export default function AdminPage() {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeout)
     try {
-      const res = await fetch(`${API_URL}${url}`, { // PAKE API_URL
+      const res = await fetch(`${API_URL}${url}`, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         signal: controller.signal, cache: 'no-store'
@@ -63,10 +63,10 @@ export default function AdminPage() {
     setLoading(true); setError('')
     try {
       const [mobil, showroom, rumah, blog] = await Promise.all([
-        fetchWithTimeout('/api/admin/mobil/'),
-        fetchWithTimeout('/api/admin/showroom/'),
-        fetchWithTimeout('/api/admin/rumah/'),
-        fetchWithTimeout('/api/admin/blog/'),
+        fetchWithTimeout('/admin/mobil/'), // FIX: hapus /api
+        fetchWithTimeout('/admin/showroom/'), // FIX: hapus /api
+        fetchWithTimeout('/admin/rumah/'), // FIX: hapus /api
+        fetchWithTimeout('/admin/blog/'), // FIX: hapus /api
       ])
       setAllMobil(Array.isArray(mobil) ? mobil : [])
       setShowrooms(Array.isArray(showroom) ? showroom : [])
@@ -77,7 +77,7 @@ export default function AdminPage() {
   }, [router])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/auth/me`, { credentials: 'include' }) // PAKE API_URL
+    fetch(`${API_URL}/api/auth/me`, { credentials: 'include' }) // ini tetep /api/auth
     .then(res => { if(!res.ok) router.push('/login-admin') })
     .then(() => fetchData())
     .catch(() => router.push('/login-admin'))
@@ -85,22 +85,22 @@ export default function AdminPage() {
 
   const handleApproveMobil = async (id) => {
     if(!confirm('Approve mobil ini?')) return
-    const res = await fetch(`${API_URL}/api/admin/mobil/${id}/approve`, { method: 'PUT', credentials: 'include' })
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/approve`, { method: 'PUT', credentials: 'include' }) // FIX
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleSoldMobil = async (id) => {
     if(!confirm('Tandai mobil ini SOLD?')) return
-    const res = await fetch(`${API_URL}/api/admin/mobil/${id}/sold`, { method: 'PUT', credentials: 'include' })
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/sold`, { method: 'PUT', credentials: 'include' }) // FIX
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleDeleteMobil = async (id) => {
     if(!confirm('HAPUS PERMANEN?')) return
-    const res = await fetch(`${API_URL}/api/admin/mobil/${id}`, { method: 'DELETE', credentials: 'include' })
+    const res = await fetch(`${API_URL}/admin/mobil/${id}`, { method: 'DELETE', credentials: 'include' }) // FIX
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleTerjualRumah = async (id) => {
     if(!confirm('Tandai rumah ini TERJUAL?')) return
-    const res = await fetch(`${API_URL}/api/admin/rumah/${id}`, { 
+    const res = await fetch(`${API_URL}/admin/rumah/${id}`, { // FIX
       method: 'PUT', 
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -110,26 +110,31 @@ export default function AdminPage() {
   }
   const handleDeleteRumah = async (id) => {
     if(!confirm('HAPUS PERMANEN RUMAH?')) return
-    const res = await fetch(`${API_URL}/api/admin/rumah/${id}`, { method: 'DELETE', credentials: 'include' })
+    const res = await fetch(`${API_URL}/admin/rumah/${id}`, { method: 'DELETE', credentials: 'include' }) // FIX
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleApproveShowroom = async (id) => {
     if(!confirm('Approve showroom ini?')) return
-    const res = await fetch(`${API_URL}/api/admin/showroom/${id}/approve`, { method: 'PUT', credentials: 'include' })
+    const res = await fetch(`${API_URL}/admin/showroom/${id}/approve`, { method: 'PUT', credentials: 'include' }) // FIX
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleSetPremium = async (id) => {
     if(!confirm('Jadikan Premium?')) return
-    const res = await fetch(`${API_URL}/api/admin/showroom/${id}/premium`, { method: 'PUT', credentials: 'include' })
+    const res = await fetch(`${API_URL}/admin/showroom/${id}/premium`, { method: 'PUT', credentials: 'include' }) // FIX
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleLogout = async () => {
-    await fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
-    router.push('/login-admin')
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+    } catch(e) {}
+    finally {
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+      router.push('/login-admin')
+    }
   }
 
   if(loading) return ( 
-    <div className={`${bg} ${text} min-h-screen flex-col items-center justify-center gap-4 ${poppins.className}`}>
+    <div className={`${bg} ${text} min-h-screen flex items-center justify-center gap-4 ${poppins.className}`}>
       <Loader2 className="w-10 h-10 animate-spin text-yellow-400"/>
       <p>Loading Panel Admin...</p>
     </div> 
@@ -164,7 +169,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* TAMBAH grid */}
+      <main className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {error && <div className="col-span-full bg-red-500/20 p-4 rounded-xl flex items-center gap-2"><AlertTriangle/> {error}</div>}
         
         {/* SECTION MOBIL */}
@@ -172,6 +177,7 @@ export default function AdminPage() {
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Car/> Mobil</h2>
           <p className={textMuted}>Pending: {mobilPending.length} | Approved: {mobilApproved.length} | Sold: {mobilSold.length}</p>
           <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {allMobil.length === 0 && <p className={textMuted}>Belum ada data</p>}
             {allMobil.map(m => (
               <div key={m.id} className="flex justify-between items-center p-2 border-b border-gray-700/50">
                 <div>
@@ -196,6 +202,7 @@ export default function AdminPage() {
             <Link href="/admin/upload-rumah" className="text-xs bg-blue-600 px-3 py-1 rounded-lg flex items-center gap-1"><Eye size={14}/>Kelola</Link>
           </div>
           <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {rumahAktif.length === 0 && <p className={textMuted}>Belum ada data</p>}
             {rumahAktif.map(r => (
               <div key={r.id} className="flex justify-between items-center p-2 border-b border-gray-700/50">
                 <div>
@@ -219,6 +226,7 @@ export default function AdminPage() {
             <Link href="/admin/approve-showroom" className="text-xs bg-blue-600 px-3 py-1 rounded-lg flex items-center gap-1"><Eye size={14}/>Kelola</Link>
           </div>
           <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {showrooms.length === 0 && <p className={textMuted}>Belum ada data</p>}
             {showrooms.map(s => (
               <div key={s.id} className="flex justify-between items-center p-2 border-b border-gray-700/50">
                 <div>
@@ -227,7 +235,7 @@ export default function AdminPage() {
                   {s.is_premium && <span className="ml-2 text-yellow-400"><Crown size={14} className="inline"/></span>}
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleApproveShowroom(s.id)} className="bg-green-600 px-3 py-1 rounded-lg text-xs">Approve</button>
+                  {s.status === 'pending' && <button onClick={() => handleApproveShowroom(s.id)} className="bg-green-600 px-3 py-1 rounded-lg text-xs">Approve</button>}
                   <button onClick={() => handleSetPremium(s.id)} className="bg-yellow-600 px-3 py-1 rounded-lg text-xs"><Crown size={14}/></button>
                 </div>
               </div>
@@ -243,6 +251,7 @@ export default function AdminPage() {
             <Link href="/admin/blog" className="text-xs bg-blue-600 px-3 py-1 rounded-lg flex items-center gap-1"><Eye size={14}/>Kelola</Link>
           </div>
           <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+            {allBlog.length === 0 && <p className={textMuted}>Belum ada data</p>}
             {allBlog.map(b => (
               <div key={b.id} className="p-2 border-b border-gray-700/50">
                 <p className="font-semibold">{b.judul}</p>
