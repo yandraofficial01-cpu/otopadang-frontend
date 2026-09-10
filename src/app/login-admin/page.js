@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, LogIn, AlertCircle } from 'lucide-react';
 
-// HAPUS INI
-// const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL; // BALIKIN INI
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('');
@@ -19,8 +18,8 @@ export default function LoginAdminPage() {
     setError('');
 
     try {
-      // 1. PAKE /api/login BUKAN API_URL
-      const res = await fetch(`/api/auth/login`, { 
+      // PAKE LANGSUNG KE BE
+      const res = await fetch(`${API_URL}/auth/login`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // WAJIB BIAR COOKIE NYEBRANG
@@ -34,7 +33,7 @@ export default function LoginAdminPage() {
         throw new Error(`Akun ini bukan admin. Role: ${data.user?.role}`);
       }
         
-      router.push('/admin'); // SESUAI FOLDER LU
+      router.push('/admin'); 
 
     } catch (error) {
       setError(error.message);
@@ -45,11 +44,10 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
         <h1 className="text-3xl font-bold text-white mb-6 text-center flex items-center justify-center gap-2">
           <LogIn/> Login Admin Otopadang
         </h1>
-        {/* HAPUS BARIS INI: <p>API: {API_URL}</p> */}
         {error && <p className="text-red-500 bg-red-900/30 p-3 rounded-lg text-sm mb-4 flex items-center gap-2"><AlertCircle size={16}/> {error}</p>}
         <input type="email" placeholder="Email Admin" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" required />
