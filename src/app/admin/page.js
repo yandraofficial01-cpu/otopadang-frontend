@@ -9,7 +9,7 @@ import {
   Loader2, RefreshCw, AlertTriangle, Sun, Moon, Eye
 } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL // harusnya https://otopadang-api.vercel.app
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'] })
@@ -63,10 +63,10 @@ export default function AdminPage() {
     setLoading(true); setError('')
     try {
       const [mobil, showroom, rumah, blog] = await Promise.all([
-        fetchWithTimeout('/admin/mobil/'), // FIX: hapus /api
-        fetchWithTimeout('/admin/showroom/'), // FIX: hapus /api
-        fetchWithTimeout('/admin/rumah/'), // FIX: hapus /api
-        fetchWithTimeout('/admin/blog/'), // FIX: hapus /api
+        fetchWithTimeout('/admin/mobil/'),
+        fetchWithTimeout('/admin/showroom/'),
+        fetchWithTimeout('/admin/rumah/'),
+        fetchWithTimeout('/admin/blog/'),
       ])
       setAllMobil(Array.isArray(mobil) ? mobil : [])
       setShowrooms(Array.isArray(showroom) ? showroom : [])
@@ -77,7 +77,7 @@ export default function AdminPage() {
   }, [router])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/auth/me`, { credentials: 'include' }) // ini tetep /api/auth
+    fetch(`${API_URL}/auth/me`, { credentials: 'include' }) // FIX 1: HAPUS /api
     .then(res => { if(!res.ok) router.push('/login-admin') })
     .then(() => fetchData())
     .catch(() => router.push('/login-admin'))
@@ -85,22 +85,22 @@ export default function AdminPage() {
 
   const handleApproveMobil = async (id) => {
     if(!confirm('Approve mobil ini?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}/approve`, { method: 'PUT', credentials: 'include' }) // FIX
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/approve`, { method: 'PUT', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleSoldMobil = async (id) => {
     if(!confirm('Tandai mobil ini SOLD?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}/sold`, { method: 'PUT', credentials: 'include' }) // FIX
+    const res = await fetch(`${API_URL}/admin/mobil/${id}/sold`, { method: 'PUT', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleDeleteMobil = async (id) => {
     if(!confirm('HAPUS PERMANEN?')) return
-    const res = await fetch(`${API_URL}/admin/mobil/${id}`, { method: 'DELETE', credentials: 'include' }) // FIX
+    const res = await fetch(`${API_URL}/admin/mobil/${id}`, { method: 'DELETE', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleTerjualRumah = async (id) => {
     if(!confirm('Tandai rumah ini TERJUAL?')) return
-    const res = await fetch(`${API_URL}/admin/rumah/${id}`, { // FIX
+    const res = await fetch(`${API_URL}/admin/rumah/${id}`, {
       method: 'PUT', 
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -110,25 +110,26 @@ export default function AdminPage() {
   }
   const handleDeleteRumah = async (id) => {
     if(!confirm('HAPUS PERMANEN RUMAH?')) return
-    const res = await fetch(`${API_URL}/admin/rumah/${id}`, { method: 'DELETE', credentials: 'include' }) // FIX
+    const res = await fetch(`${API_URL}/admin/rumah/${id}`, { method: 'DELETE', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleApproveShowroom = async (id) => {
     if(!confirm('Approve showroom ini?')) return
-    const res = await fetch(`${API_URL}/admin/showroom/${id}/approve`, { method: 'PUT', credentials: 'include' }) // FIX
+    const res = await fetch(`${API_URL}/admin/showroom/${id}/approve`, { method: 'PUT', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleSetPremium = async (id) => {
     if(!confirm('Jadikan Premium?')) return
-    const res = await fetch(`${API_URL}/admin/showroom/${id}/premium`, { method: 'PUT', credentials: 'include' }) // FIX
+    const res = await fetch(`${API_URL}/admin/showroom/${id}/premium`, { method: 'PUT', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+      await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' }) // FIX 2: HAPUS /api
     } catch(e) {}
     finally {
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+      document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.vercel.app;"
+      document.cookie = "showroom_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.vercel.app;"
       router.push('/login-admin')
     }
   }
@@ -169,10 +170,9 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <main className="p-4 md:p-8 grid-cols-1 lg:grid-cols-2 gap-6">
         {error && <div className="col-span-full bg-red-500/20 p-4 rounded-xl flex items-center gap-2"><AlertTriangle/> {error}</div>}
         
-        {/* SECTION MOBIL */}
         <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Car/> Mobil</h2>
           <p className={textMuted}>Pending: {mobilPending.length} | Approved: {mobilApproved.length} | Sold: {mobilSold.length}</p>
@@ -194,7 +194,6 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* SECTION RUMAH */}
         <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Home/> Rumah</h2>
           <div className="flex justify-between items-center mb-2">
@@ -218,7 +217,6 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* SECTION SHOWROOM */}
         <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Building2/> Showroom</h2>
           <div className="flex justify-between items-center mb-2">
@@ -243,7 +241,6 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* SECTION BLOG */}
         <section className={`${card} backdrop-blur-xl rounded-2xl p-6`}>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><FileText/> Blog</h2>
           <div className="flex justify-between items-center mb-2">
