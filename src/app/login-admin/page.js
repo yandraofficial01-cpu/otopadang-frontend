@@ -7,7 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = = useState('');
+  const [password, setPassword] = useState(''); // UDAH DIHAPUS 1 =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -17,7 +17,6 @@ export default function LoginAdminPage() {
     setLoading(true);
     setError('');
 
-    // DEBUG: CEK API_URL DULU
     if(!API_URL) {
       setError("ERROR: NEXT_PUBLIC_API_URL belum diset di Vercel. Masuk ke Settings > Environment Variables")
       setLoading(false)
@@ -28,7 +27,7 @@ export default function LoginAdminPage() {
       const res = await fetch(`${API_URL}/auth/login`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // WAJIB BIAR COOKIE NYEBRANG
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       });
 
@@ -51,12 +50,11 @@ export default function LoginAdminPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#0B0B0F]">
-      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border border-gray-800">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-[#1a1a20] p-8 rounded-2xl border-gray-800">
         <h1 className="text-3xl font-bold text-white mb-2 text-center flex items-center justify-center gap-2">
           <LogIn/> Login Admin Otopadang
         </h1>
         
-        {/* TAMPILIN API_URL BUAT DEBUG */}
         <p className="text-xs text-gray-500 text-center mb-4">
           API: {API_URL || <span className="text-red-500">KOSONG</span>}
         </p>
@@ -81,7 +79,7 @@ export default function LoginAdminPage() {
           placeholder="Password" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         <button 
