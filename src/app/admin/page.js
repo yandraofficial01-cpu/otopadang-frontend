@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Poppins, Playfair_Display } from 'next/font/google'
@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [showrooms, setShowrooms] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const isMounted = useRef(false) // cegah double fetch di dev
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('admin_theme') || 'dark'
@@ -37,7 +38,7 @@ export default function AdminPage() {
   }
 
   const bg = theme === 'dark' ? 'bg-[#0B0B0F]' : 'bg-[#F8F9FA]'
-  const card = theme === 'dark' ? 'bg-[#1a1a20]/60 border-gray-800' : 'bg-white/70 border-gray-200'
+  const card = theme === 'dark' ? 'bg-[#1a1a20]/60 border border-gray-800' : 'bg-white/70 border border-gray-200'
   const text = theme === 'dark' ? 'text-white' : 'text-gray-800'
   const textMuted = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
@@ -46,13 +47,13 @@ export default function AdminPage() {
     const id = setTimeout(() => controller.abort(), timeout)
     try {
       const res = await fetch(`${API_URL}${url}`, {
-        credentials: 'include',
+        credentials: 'include', // WAJIB BUAT KIRIM COOKIE
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         signal: controller.signal, cache: 'no-store'
       })
       clearTimeout(id)
       if(!res.ok) {
-        if(res.status === 401) router.push('/login-admin')
+        // JANGAN REDIRECT DI SINI. BIARKAN ERROR THROW AJA
         const txt = await res.text()
         throw new Error(`${url.split('/').pop()} ${res.status}: ${txt.slice(0,100)}`)
       }
@@ -73,12 +74,18 @@ export default function AdminPage() {
       setShowrooms(Array.isArray(showroom) ? showroom : [])
       setAllRumah(Array.isArray(rumah) ? rumah : [])
       setAllBlog(Array.isArray(blog) ? blog : [])
-    } catch (err) { setError(err.message) }
+    } catch (err) { 
+      console.error(err)
+      setError(err.message) 
+    }
     finally { setLoading(false) }
-  }, [router])
+  }, [])
 
   useEffect(() => {
-    // FIX: CEK AUTH + ROLE DULU SEBELUM FETCH DATA
+    if(isMounted.current) return
+    isMounted.current = true
+    
+    // CEK AUTH + ROLE DULU SEBELUM FETCH DATA
     fetch(`${API_URL}/auth/me`, { credentials: 'include' })
     .then(res => { 
       if(!res.ok) throw new Error('401')
@@ -140,7 +147,6 @@ export default function AdminPage() {
       await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' })
     } catch(e) {}
     finally {
-      // FIX: HAPUS domain biar gak error di local
       document.cookie = "admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=none; secure"
       document.cookie = "showroom_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=none; secure"
       localStorage.clear()
@@ -163,12 +169,12 @@ export default function AdminPage() {
 
   const StatusBadge = ({status}) => { 
     const colors = { 
-      pending: 'bg-yellow-500/20 text-yellow-400', 
-      approved: 'bg-green-500/20 text-green-400', 
-      sold: 'bg-blue-500/20 text-blue-400', 
-      terjual: 'bg-purple-500/20 text-purple-400', 
-      available: 'bg-green-500/20 text-green-400', 
-      rejected: 'bg-red-500/20 text-red-400', 
+      pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', 
+      approved: 'bg-green-500/20 text-green-400 border-green-500/30', 
+      sold: 'bg-blue-500/20 text-blue-400 border-blue-500/30', 
+      terjual: 'bg-purple-500/20 text-purple-400 border-purple-500/30', 
+      available: 'bg-green-500/20 text-green-400 border-green-500/30', 
+      rejected: 'bg-red-500/20 text-red-400 border-red-500/30', 
     }; 
     return <span className={`px-2 py-1 text-xs font-bold rounded-full border ${colors[status] || colors.pending}`}>{status?.toUpperCase()}</span> 
   }
@@ -208,7 +214,7 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* ... SISA KODE LU SAMA PERSIS ... */}
+        {/* ... SISA SECTION RUMAH, SHOWROOM, BLOG LU TARUH DI SINI ... */}
       </main>
     </div>
   )
