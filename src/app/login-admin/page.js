@@ -1,13 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogIn, AlertCircle, ServerCrash } from 'lucide-react';
+import { Loader2, LogIn, AlertCircle } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// LANGSUNG HARDCOD. GA PAKE ENV LAGI
+const API_URL = 'https://otopadang-api.vercel.app';
 
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); // UDAH DIHAPUS 1 =
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -17,17 +18,11 @@ export default function LoginAdminPage() {
     setLoading(true);
     setError('');
 
-    if(!API_URL) {
-      setError("ERROR: NEXT_PUBLIC_API_URL belum diset di Vercel. Masuk ke Settings > Environment Variables")
-      setLoading(false)
-      return
-    }
-
     try {
       const res = await fetch(`${API_URL}/auth/login`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        credentials: 'include', // WAJIB INI BIAR COOKIE KE KIRIM
         body: JSON.stringify({ email, password })
       });
 
@@ -37,6 +32,10 @@ export default function LoginAdminPage() {
       if(data.user?.role?.toLowerCase() !== 'admin'){
         throw new Error(`Akun ini bukan admin. Role: ${data.user?.role}`);
       }
+        
+      // Simpen role buat middleware FE
+      localStorage.setItem('role', 'admin');
+      localStorage.setItem('user', JSON.stringify(data.user));
         
       router.push('/admin'); 
 
@@ -55,13 +54,13 @@ export default function LoginAdminPage() {
           <LogIn/> Login Admin Otopadang
         </h1>
         
-        <p className="text-xs text-gray-500 text-center mb-4">
-          API: {API_URL || <span className="text-red-500">KOSONG</span>}
+        <p className="text-xs text-green-400 text-center mb-4">
+          API: {API_URL}
         </p>
 
         {error && (
           <div className="text-red-400 bg-red-900/30 p-3 rounded-lg text-sm mb-4 flex items-start gap-2">
-            {error.includes("API_URL") ? <ServerCrash size={16} className="mt-0.5"/> : <AlertCircle size={16} className="mt-0.5"/>}
+            <AlertCircle size={16} className="mt-0.5"/>
             <span>{error}</span>
           </div>
         )}
@@ -79,7 +78,7 @@ export default function LoginAdminPage() {
           placeholder="Password" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-6 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         <button 
