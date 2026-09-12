@@ -7,28 +7,23 @@ export default function AutoLogout() {
   const pathname = usePathname()
   const timer = useRef(null)
   const [timeLeft, setTimeLeft] = useState(60 * 60) // 1 jam
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const LOGOUT_TIME_MS = 60 * 60 * 1000 // 1 JAM
   const LOGOUT_TIME_SEC = 60 * 60
 
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  };
-
   const logout = () => {
     localStorage.clear()
-    // HAPUS SEMUA COOKIE TOKEN
-    document.cookie = "admin_token=; path=/; max-age=0; SameSite=None; Secure"
-    document.cookie = "showroom_token=; path=/; max-age=0; SameSite=None; Secure"
+    // HAPUS SEMUA COOKIE TOKEN - panggil ke proxy biar kehapus bener
+    fetch('/api/logout', { method: 'POST', credentials: 'include' }).catch(() => {})
+    
     alert('Sesi habis 1 jam. Silakan login ulang')
 
     // CEK KITA LAGI DI ADMIN ATAU SHOWROOM
     if(pathname.startsWith('/admin')) {
-      router.push('/admin/login')
+      router.push('/login-admin') // samain sama middleware lu
     } else {
-      router.push('/login/showroom') // ganti sesuai path login showroom lu
+      router.push('/login/showroom')
     }
   }
 
@@ -40,27 +35,38 @@ export default function AutoLogout() {
 
   // Hitung mundur
   useEffect(() => {
+    if(!isLoggedIn) return
     const interval = setInterval(() => {
       setTimeLeft(prev => prev > 0? prev - 1 : 0)
     }, 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [isLoggedIn])
 
   useEffect(() => {
-    // CEK COOKIE BUKAN LOCALSTORAGE
-    const adminToken = getCookie('admin_token')
-    const showroomToken = getCookie('showroom_token')
-    if(!adminToken &&!showroomToken) return
+    // JANGAN CEK document.cookie. CEK KE BE LANGSUNG
+    fetch('/api/auth/me', { 
+      method: 'GET',
+      credentials: 'include' // biar cookie httpOnly kekirim
+    })
+   .then(res => {
+      if(res.ok) {
+        setIsLoggedIn(true) // baru jalanin timer kalau BE bilang ok
+        
+        const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
+        events.forEach(event => window.addEventListener(event, resetTimer))
 
-    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
-    events.forEach(event => window.addEventListener(event, resetTimer))
+        resetTimer()
 
-    resetTimer()
+        return () => {
+          events.forEach(event => window.removeEventListener(event, resetTimer))
+          clearTimeout(timer.current)
+        }
+      } else {
+        setIsLoggedIn(false)
+      }
+    })
+   .catch(() => setIsLoggedIn(false))
 
-    return () => {
-      events.forEach(event => window.removeEventListener(event, resetTimer))
-      clearTimeout(timer.current)
-    }
   }, [pathname])
 
   const formatTime = (sec) => {
@@ -69,8 +75,10 @@ export default function AutoLogout() {
     return `${m}:${s}`
   }
 
+  if(!isLoggedIn) return null // kalau belum login jangan tampil
+
   return (
-    <div className="fixed top-4 right-4 bg-zinc-900 border border-zinc-800 text-yellow-400 text-xs px-3 py-2 rounded-lg z-50">
+    <div className="fixed top-4 right-4 bg-zinc-900 border-zinc-800 text-yellow-400 text-xs px-3 py-2 rounded-lg z-50">
       Auto logout: {formatTime(timeLeft)}
     </div>
   )
