@@ -19,13 +19,14 @@ export async function POST(request) {
     // Set cookie dari server biar aman - INI KUNCINYA
     if(res.ok && data.access_token && data.user) {
       const cookieName = data.user.role === 'admin' ? 'admin_token' : 'showroom_token'
-      
+
       response.cookies.set(cookieName, data.access_token, {
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 hari
-        sameSite: 'lax', // aman karena 1 domain
-        httpOnly: true, 
-        secure: process.env.NODE_ENV === 'production', // true di vercel
+        domain: '.vercel.app', // <-- TAMBAH INI
+        sameSite: 'none', // <-- UBAH JADI NONE
+        httpOnly: true,
+        secure: true, // <-- WAJIB TRUE
       })
     }
 
