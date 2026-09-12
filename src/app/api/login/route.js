@@ -23,10 +23,10 @@ export async function POST(request) {
       response.cookies.set(cookieName, data.access_token, {
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 hari
-        domain: '.vercel.app', // <-- TAMBAH INI
-        sameSite: 'none', // <-- UBAH JADI NONE
+        // domain: '.vercel.app', // <-- HAPUS INI
+        sameSite: 'lax', // <-- GANTI JADI LAX
         httpOnly: true,
-        secure: true, // <-- WAJIB TRUE
+        secure: true, // WAJIB TRUE
       })
     }
 
