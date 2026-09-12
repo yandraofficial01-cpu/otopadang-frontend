@@ -3,9 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, LogIn, AlertCircle } from 'lucide-react';
 
-// LANGSUNG HARDCOD. GA PAKE ENV LAGI
-const API_URL = 'https://otopadang-api.vercel.app';
-
 export default function LoginAdminPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,10 +16,11 @@ export default function LoginAdminPage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, { 
+      // 1. FETCH KE PROXY KITA SENDIRI BUKAN KE BE LANGSUNG
+      const res = await fetch(`/api/login`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // WAJIB INI BIAR COOKIE KE KIRIM
+        credentials: 'include', 
         body: JSON.stringify({ email, password })
       });
 
@@ -33,11 +31,14 @@ export default function LoginAdminPage() {
         throw new Error(`Akun ini bukan admin. Role: ${data.user?.role}`);
       }
         
-      // Simpen role buat middleware FE
-      localStorage.setItem('role', 'admin');
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // 2. HAPUS LOCALSTORAGE. KITA PAKE COOKIE DOANG
+      // localStorage.setItem('role', 'admin');
+      // localStorage.setItem('user', JSON.stringify(data.user));
         
-      router.push('/admin'); 
+      // 3. KASIH JEDA BIAR COOKIE KE SAVE DULU
+      setTimeout(() => {
+        router.push('/admin'); 
+      }, 300)
 
     } catch (error) {
       setError(error.message);
@@ -55,7 +56,7 @@ export default function LoginAdminPage() {
         </h1>
         
         <p className="text-xs text-green-400 text-center mb-4">
-          API: {API_URL}
+          API: Proxy /api/login
         </p>
 
         {error && (
@@ -70,7 +71,7 @@ export default function LoginAdminPage() {
           placeholder="Email Admin" 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
-          className="w-full p-3 mb-4 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
+          className="w-full p-3 mb-4 bg-gray-900 border-gray-700 rounded-lg text-white focus:border-yellow-500 outline-none" 
           required 
         />
         <input 
