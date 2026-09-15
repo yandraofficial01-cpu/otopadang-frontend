@@ -29,14 +29,18 @@ async function handler(req, { params }) {
       'Cookie': cookieHeader // kirim nama yg bener
     },
     body,
-    cache: 'no-store'
+    cache: 'no-store',
+    credentials: 'include' // <-- INI WAJIB TAMBAH. BIAR COOKIE KE-BE
   })
 
   const data = await res.text()
 
   return new NextResponse(data, {
     status: res.status,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Credentials': 'true' // bonus biar aman
+    }
   })
 }
 
