@@ -11,13 +11,14 @@ async function handler(req, { params }) {
   const realPath = path.replace('admin/', '')
   const url = `${API_URL}/${realPath}`
 
-  // 2. FORWARD COOKIE DENGAN NAMA YANG BENER
+  // 2. FORWARD COOKIE DENGAN NAMA YANG BENER - FIX MULTI COOKIE
   const adminToken = cookieStore.get('admin_token')?.value
   const showroomToken = cookieStore.get('showroom_token')?.value
   
-  let cookieHeader = ''
-  if(adminToken) cookieHeader = `admin_token=${adminToken}`
-  if(showroomToken) cookieHeader = `showroom_token=${showroomToken}`
+  const cookieParts = []
+  if(adminToken) cookieParts.push(`admin_token=${adminToken}`)
+  if(showroomToken) cookieParts.push(`showroom_token=${showroomToken}`)
+  const cookieHeader = cookieParts.join('; ') // pake ; biar bisa 2 cookie sekaligus
 
   const body = req.method !== 'GET' ? await req.text() : undefined
 
@@ -26,11 +27,11 @@ async function handler(req, { params }) {
     headers: { 
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'Cookie': cookieHeader // kirim nama yg bener
+      ...(cookieHeader && { 'Cookie': cookieHeader }) // cuma kirim kalau ada isinya
     },
     body,
     cache: 'no-store',
-    credentials: 'include' // <-- INI WAJIB TAMBAH. BIAR COOKIE KE-BE
+    credentials: 'include' // WAJIB BIAR COOKIE NYEBERANG KE BE
   })
 
   const data = await res.text()
@@ -39,7 +40,7 @@ async function handler(req, { params }) {
     status: res.status,
     headers: { 
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Credentials': 'true' // bonus biar aman
+      'Access-Control-Allow-Credentials': 'true'
     }
   })
 }
