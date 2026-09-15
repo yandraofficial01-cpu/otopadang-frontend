@@ -36,13 +36,23 @@ async function handler(req, { params }) {
 
   const data = await res.text()
 
-  return new NextResponse(data, {
+  // 3. AMBIL SET-COOKIE DARI BE
+  const setCookieHeader = res.headers.get('set-cookie');
+
+  const response = new NextResponse(data, {
     status: res.status,
     headers: { 
       'Content-Type': 'application/json',
       'Access-Control-Allow-Credentials': 'true'
     }
   })
+
+  // 4. TERUSIN SET-COOKIE KE BROWSER - INI YANG KURANG
+  if (setCookieHeader) {
+    response.headers.set('set-cookie', setCookieHeader);
+  }
+
+  return response;
 }
 
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE }
+export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as OPTIONS }
