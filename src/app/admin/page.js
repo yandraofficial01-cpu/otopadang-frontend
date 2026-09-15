@@ -31,7 +31,7 @@ export default function AdminPage() {
   }
 
   const bg = theme === 'dark' ? 'bg-[#0B0B0F]' : 'bg-[#F8F9FA]'
-  const card = theme === 'dark' ? 'bg-[#1a1a20]/60 border border-gray-800' : 'bg-white/70 border border-gray-200'
+  const card = theme === 'dark' ? 'bg-[#1a1a20]/60 border-gray-800' : 'bg-white/70 border-gray-200'
   const text = theme === 'dark' ? 'text-white' : 'text-gray-800'
   const textMuted = theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
 
@@ -39,7 +39,6 @@ export default function AdminPage() {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeout)
     try {
-      // 1. FETCH KE PROXY KITA SENDIRI
       const res = await fetch(`/api${url}`, { 
         credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -57,11 +56,12 @@ export default function AdminPage() {
   const fetchData = useCallback(async () => {
     setLoading(true); setError('')
     try {
+      // HAPUS /admin DARI SINI. SESUAIKAN SAMA BE LU
       const [mobil, showroom, rumah, blog] = await Promise.all([
-        fetchWithTimeout('/admin/mobil/'),
-        fetchWithTimeout('/admin/showroom/'),
-        fetchWithTimeout('/admin/rumah/'),
-        fetchWithTimeout('/admin/blog/'),
+        fetchWithTimeout('/cars/all-public'),
+        fetchWithTimeout('/showroom/all'), // kalau BE lu beda ganti disini
+        fetchWithTimeout('/rumah/all-public'),
+        fetchWithTimeout('/blog/all'), // kalau BE lu beda ganti disini
       ])
       setAllMobil(Array.isArray(mobil) ? mobil : [])
       setShowrooms(Array.isArray(showroom) ? showroom : [])
@@ -78,7 +78,6 @@ export default function AdminPage() {
     if(isMounted.current) return
     isMounted.current = true
     
-    // 2. CEK AUTH LEWAT PROXY JUGA
     fetch(`/api/auth/me`, { credentials: 'include' })
     .then(res => { 
       if(!res.ok) throw new Error('401')
@@ -95,13 +94,30 @@ export default function AdminPage() {
     .catch(() => router.push('/login-admin'))
   }, [fetchData, router])
 
-  // 3. SEMUA HANDLE JUGA PAKE PROXY
+  // HAPUS /admin DARI SEMUA HANDLE JUGA
   const handleApproveMobil = async (id) => {
     if(!confirm('Approve mobil ini?')) return
-    const res = await fetch(`/api/admin/mobil/${id}/approve`, { method: 'PUT', credentials: 'include' })
+    const res = await fetch(`/api/cars/${id}/approve`, { method: 'PUT', credentials: 'include' })
     if(res.ok) fetchData(); else alert(await res.text())
   }
-  // ... sisanya sama. ganti API_URL jadi /api
+  
+  const handleDeleteMobil = async (id) => {
+    if(!confirm('Yakin hapus mobil ini?')) return
+    const res = await fetch(`/api/cars/${id}`, { method: 'DELETE', credentials: 'include' })
+    if(res.ok) fetchData(); else alert(await res.text())
+  }
+
+  const handleApproveRumah = async (id) => {
+    if(!confirm('Approve rumah ini?')) return
+    const res = await fetch(`/api/rumah/${id}/approve`, { method: 'PUT', credentials: 'include' })
+    if(res.ok) fetchData(); else alert(await res.text())
+  }
+
+  const handleDeleteRumah = async (id) => {
+    if(!confirm('Yakin hapus rumah ini?')) return
+    const res = await fetch(`/api/rumah/${id}`, { method: 'DELETE', credentials: 'include' })
+    if(res.ok) fetchData(); else alert(await res.text())
+  }
 
   const handleLogout = async () => {
     await fetch(`/api/auth/logout`, { method: 'POST', credentials: 'include' })
@@ -114,5 +130,20 @@ export default function AdminPage() {
       <p>Loading Panel Admin...</p>
     </div> 
   )
-  // ... SISA KODE LU SAMA
+
+  if(error) return (
+    <div className={`${bg} ${text} min-h-screen flex items-center justify-center ${poppins.className}`}>
+      <div className={`${card} p-6 rounded-xl`}>
+        <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-2"/>
+        <p>Error: {error}</p>
+        <button onClick={fetchData} className="mt-4 px-4 py-2 bg-yellow-500 text-black rounded">Retry</button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className={`${bg} ${text} min-h-screen ${poppins.className}`}>
+      {/* ISI UI LU TETAP SAMA. TINGGAL GANTI DATA NYA */}
+    </div>
+  )
 }
