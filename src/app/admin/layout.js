@@ -3,12 +3,10 @@ export const metadata = {
   description: "Dashboard Admin Otopadang",
 };
 
-import AdminClientLayout from "./AdminClientLayout";
-
 export default function AdminLayout({ children }) {
   return (
-    <AdminClientLayout>
+    <div className="min-h-screen bg-[#0B0B0F] text-white">
       {children}
-    </AdminClientLayout>
+    </div>
   );
 }
