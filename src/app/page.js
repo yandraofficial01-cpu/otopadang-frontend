@@ -1,4 +1,4 @@
-// JANGAN pakai "use client" - ini SSR
+// SSR - JANGAN pakai "use client"
 import Link from "next/link";
 import ImageSliderClient from "@/components/ImageSliderClient";
 
@@ -24,7 +24,7 @@ async function getData() {
 }
 
 export default async function HomePage() {
-  const { mobil, rumah } = await getData(); // INI JALAN DI SERVER VERCEL, BUKAN DI BROWSER
+  const { mobil, rumah } = await getData();
 
   return (
     <main className="min-h-screen bg-[#0B0B0F] text-white">
@@ -53,7 +53,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* MOBIL - SUDAH SSR, GOOGLE BISA BACA */}
       {mobil.length > 0 && (
         <section className="container mx-auto max-w-7xl px-4 py-12">
           <h2 className="text-3xl font-bold mb-8">Mobil Terbaru (SSR)</h2>
@@ -72,7 +71,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* RUMAH */}
       {rumah.length > 0 && (
         <section className="container mx-auto max-w-7xl px-4 py-12">
           <h2 className="text-3xl font-bold mb-8">Rumah Terbaru (SSR)</h2>
@@ -91,4 +89,4 @@ export default async function HomePage() {
       )}
     </main>
   );
-    }
+        }
