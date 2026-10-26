@@ -2,23 +2,33 @@
 import Link from "next/link";
 import ImageSliderClient from "@/components/ImageSliderClient";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://otopadang-api.vercel.app";
 
 async function getData() {
   try {
     const [resMobil, resRumah] = await Promise.all([
-      fetch(`${API_URL}/cars/all-public`, { next: { revalidate: 60 } }),
-      fetch(`${API_URL}/rumah/all-public`, { next: { revalidate: 60 } }),
+      fetch(`${API_URL}/api/mobils`, { next: { revalidate: 60 } }),
+      fetch(`${API_URL}/api/rumah`, { next: { revalidate: 60 } }).catch(() => null),
     ]);
     
-    const rawMobil = await resMobil.json();
-    const rawRumah = await resRumah.json();
+    let mobil = [];
+    let rumah = [];
+
+    if (resMobil?.ok) {
+      const rawMobil = await resMobil.json();
+      // backend lu return bisa {data: [...]} atau langsung [...]
+      mobil = (rawMobil.data || rawMobil || []).slice(0, 8);
+    }
+
+    if (resRumah?.ok) {
+      const rawRumah = await resRumah.json();
+      rumah = (rawRumah.data || rawRumah || []).slice(0, 8);
+    }
     
-    return {
-      mobil: (rawMobil.data || rawMobil || []).slice(0, 8),
-      rumah: (rawRumah.data || rawRumah || []).slice(0, 8),
-    };
+    console.log("SSR Mobil loaded:", mobil.length);
+    return { mobil, rumah };
   } catch (e) {
+    console.error("SSR Fetch Error:", e);
     return { mobil: [], rumah: [] };
   }
 }
@@ -53,7 +63,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {mobil.length > 0 && (
+      {mobil.length > 0 ? (
         <section className="container mx-auto max-w-7xl px-4 py-12">
           <h2 className="text-3xl font-bold mb-8">Mobil Terbaru (SSR)</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -68,6 +78,10 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+        </section>
+      ) : (
+        <section className="container mx-auto max-w-7xl px-4 py-12 text-center text-gray-500">
+          <p>Backend: {API_URL}/api/mobils belum return data. Cek /docs dan cek mobil_router.py</p>
         </section>
       )}
 
